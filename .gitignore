@@ -59,3 +59,4 @@ Thumbs.db
 
 # Thiết lập của IntelliJ IDEA / PyCharm
 .idea/
+.vscode/
