@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Giám sát sạt lở · TinyML</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'telemetry/dashboard.css' %}">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="/">⛰ <span><b>Sườn Núi</b><small>IoT · TinyML</small></span></a>
+    <div><i id="dot"></i><span id="connection">Đang kết nối</span> · <span id="device">Chưa có thiết bị</span></div>
+  </header>
+  <main>
+    <div class="intro">
+      <div><small>BẢNG ĐIỀU KHIỂN THIẾT BỊ</small><h1>Giám sát sườn dốc</h1><p>Số đo cảm biến và phân loại gần nhất từ ESP32-C3.</p></div>
+      <label>● Tự cập nhật mỗi 1 giây</label>
+    </div>
+
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}<p class="message {{ message.tags }}">{{ message }}</p>{% endfor %}
+      </div>
+    {% endif %}
+
+    <section class="panel threshold-panel">
+      <div class="panelhead">
+        <div><small>CẤU HÌNH MÔI TRƯỜNG</small><h2>Ngưỡng cảnh báo bổ sung cho TinyML</h2></div>
+        <span id="profileLabel">{{ config.profile_name }}</span>
+      </div>
+      <p class="threshold-note">TinyML vẫn phân loại chính. Các ngưỡng này chỉ nâng mức cảnh báo; chúng không hạ mức model đã báo. Giá trị ban đầu là ví dụ để trình diễn, cần hiệu chỉnh bằng dữ liệu phù hợp với mô hình của bạn.</p>
+      <form method="post" action="/thresholds/" class="threshold-form">
+        {% csrf_token %}
+        <label class="profile-field">Tên cấu hình môi trường
+          <input name="profile_name" value="{{ config.profile_name }}" maxlength="64" required>
+        </label>
+        <label>Độ ẩm đất để nâng lên “Chú ý” (%)
+          <input type="number" name="moisture_attention_pct" min="0" max="100" step="0.1" value="{{ config.moisture_attention_pct }}" required>
+        </label>
+        <label>Góc nghiêng “Chú ý” (°)
+          <input type="number" name="attention_angle_deg" min="0" max="360" step="0.1" value="{{ config.attention_angle_deg }}" required>
+        </label>
+        <label>Góc nghiêng “Nguy cơ cao” (°)
+          <input type="number" name="high_risk_angle_deg" min="0" max="360" step="0.1" value="{{ config.high_risk_angle_deg }}" required>
+        </label>
+        <label>Tốc độ đổi góc “Chú ý” (°/phút)
+          <input type="number" name="attention_rate_deg_per_min" min="0" step="0.1" value="{{ config.attention_rate_deg_per_min }}" required>
+        </label>
+        <label>Tốc độ đổi góc “Nguy cơ cao” (°/phút)
+          <input type="number" name="high_risk_rate_deg_per_min" min="0" step="0.1" value="{{ config.high_risk_rate_deg_per_min }}" required>
+        </label>
+        <button type="submit">Lưu ngưỡng</button>
+      </form>
+      <p class="threshold-footnote">ESP32 lấy cấu hình mới qua API có xác thực. Cấu hình có hiệu lực ở lần đồng bộ kế tiếp.</p>
+    </section>
+
+    <section id="banner" class="banner empty"><div id="symbol" class="symbol">…</div><div><small>TRẠNG THÁI HIỆN TẠI</small><h2 id="state">Đang chờ dữ liệu</h2><p id="detail">Gửi bản tin đầu tiên từ ESP32 để bắt đầu.</p></div><time id="age">—</time></section>
+    <section class="cards">
+      <article><small>ĐỘ ẨM ĐẤT</small><strong><span id="moisture">—</span><em>%</em></strong><p>Cảm biến analog</p></article>
+      <article><small>GÓC NGHIÊNG</small><strong><span id="angle">—</span><em>°</em></strong><p>MPU6050 · gia tốc</p></article>
+      <article><small>TỐC ĐỘ ĐỔI GÓC</small><strong><span id="rate">—</span><em>°/phút</em></strong><p>Tính từ hai lần đo</p></article>
+    </section>
+    <section class="grid">
+      <article class="panel"><div class="panelhead"><div><small>DỮ LIỆU THEO THỜI GIAN</small><h2>Lịch sử cảm biến</h2></div><span id="count">0 bản tin</span></div><div class="chart"><canvas id="chart"></canvas></div><div class="legend">🔵 Độ ẩm　 🟠 Góc nghiêng　 🟣 Tốc độ đổi góc</div></article>
+      <article class="panel"><div class="panelhead"><div><small>THIẾT BỊ</small><h2>Kết nối gần nhất</h2></div><span id="badge">Ngoại tuyến</span></div><div class="device"><b>ESP</b><span><strong id="device2">Chưa nhận dữ liệu</strong><small id="lastseen">—</small></span></div><p class="row">Nhận dữ liệu lúc <b id="received">—</b></p><p class="row">Còi tại chỗ <b>ESP32 tự điều khiển</b></p><aside>Cảnh báo tại chỗ vẫn hoạt động khi Wi-Fi mất.</aside></article>
+    </section>
+    <section class="panel table"><div class="panelhead"><div><small>NHẬT KÝ</small><h2>Các lần đo gần đây</h2></div><span>Tối đa 20 dòng</span></div><div class="scroll"><table><thead><tr><th>Thời gian</th><th>Thiết bị</th><th>Độ ẩm</th><th>Góc</th><th>Tốc độ</th><th>Trạng thái</th></tr></thead><tbody id="rows"><tr><td colspan="6" class="emptyrow">Chưa có dữ liệu từ ESP32.</td></tr></tbody></table></div></section>
+    <div id="error" role="status"></div>
+    <footer>Đồ án học tập · Các ngưỡng minh họa không dùng làm cảnh báo an toàn thực địa.</footer>
+  </main>
+</div>
+<script src="{% static 'telemetry/dashboard.js' %}"></script>
+</body>
+</html>
