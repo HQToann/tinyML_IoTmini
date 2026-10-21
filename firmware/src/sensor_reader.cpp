@@ -52,17 +52,26 @@ SensorData SensorReader::read() {
     }
 
     // 3. Tốc độ biến thiên góc nghiêng (độ/phút)
+    // Tích hợp từ Gyroscope (thanh ROTATION trên Wokwi) và biến thiên góc nghiêng theo thời gian
+    float gyro_dps = sqrt(g.gyro.x * g.gyro.x + g.gyro.y * g.gyro.y) * (180.0f / M_PI); // độ/giây
+    float gyro_rate_deg_per_min = gyro_dps * 0.012f; // Quy đổi về thang đo phù hợp với TinyML (0 - 1.2°/phút)
+
+    float accel_rate_deg_per_min = 0.0f;
     if (_is_first_read) {
-        data.tilt_rate_deg_per_min = 0.0f;
         _is_first_read = false;
     } else {
         float delta_time_min = (now_ms - _last_read_ms) / 60000.0f;
         if (delta_time_min > 0.0001f) {
             float delta_angle = fabs(data.tilt_angle_deg - _last_tilt_angle);
-            data.tilt_rate_deg_per_min = delta_angle / delta_time_min;
-        } else {
-            data.tilt_rate_deg_per_min = 0.0f;
+            accel_rate_deg_per_min = delta_angle / delta_time_min;
         }
+    }
+
+    // Nếu người dùng chỉnh thanh ROTATION trên Wokwi, cảm biến Gyro sẽ phản hồi ngay lập tức
+    if (gyro_rate_deg_per_min > 0.05f) {
+        data.tilt_rate_deg_per_min = constrain(gyro_rate_deg_per_min, 0.0f, 1.2f);
+    } else {
+        data.tilt_rate_deg_per_min = constrain(accel_rate_deg_per_min, 0.0f, 1.2f);
     }
 
     _last_tilt_angle = data.tilt_angle_deg;

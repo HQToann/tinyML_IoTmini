@@ -65,7 +65,7 @@ void loop() {
         // BƯỚC 1: Đọc cảm biến
         SensorData sensor_data = sensorReader.read();
 
-        // BƯỚC 2: Chạy suy luận mạng nơ-ron TinyML
+        // BƯỚC 2: Chạy suy luận mạng nơ-ron TinyML (100% do AI quyết định)
         PredictionResult pred = tinyMLRunner.predict(sensor_data);
         current_risk_level = pred.predicted_class;
 

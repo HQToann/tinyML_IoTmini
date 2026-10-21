@@ -6,7 +6,7 @@
     { "type": "board-esp32-c3-devkitm-1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
     { "type": "wokwi-potentiometer", "id": "soil", "top": -120, "left": 150, "attrs": {} },
     { "type": "wokwi-mpu6050", "id": "imu", "top": 130, "left": 190, "rotate": 90, "attrs": {} },
-    { "type": "wokwi-buzzer", "id": "bz", "top": -110, "left": -130, "attrs": { "volume": "0.1" } },
+    { "type": "wokwi-buzzer", "id": "bz", "top": -110, "left": -130, "attrs": { "volume": "1.0" } },
     { "type": "wokwi-led", "id": "ledG", "top": 200, "left": -150, "attrs": { "color": "green" } },
     { "type": "wokwi-led", "id": "ledY", "top": 200, "left": -100, "attrs": { "color": "yellow" } },
     { "type": "wokwi-led", "id": "ledR", "top": 200, "left": -50, "attrs": { "color": "red" } },
