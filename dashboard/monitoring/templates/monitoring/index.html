@@ -1,0 +1,360 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Giám Sát & Cảnh Báo Sạt Lở Đất TinyML</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'monitoring/css/style.css' %}">
+</head>
+<body class="theme-dark">
+    <!-- Top Navigation Bar -->
+    <header class="top-nav">
+        <div class="nav-container">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 22h20L12 2z" stroke-linejoin="round"/>
+                        <path d="M12 9v5m0 3v1" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>TINYML LANDSLIDE MONITOR</h1>
+                    <p>Hệ Thống Giám Sát & Cảnh Báo Sớm Sạt Lở Đất IoT Edge AI</p>
+                </div>
+            </div>
+
+            <div class="nav-status-group">
+                <div class="status-chip broker-chip">
+                    <span class="chip-dot pulse-online" id="brokerStatusDot"></span>
+                    <span class="chip-label">MQTT:</span>
+                    <span class="chip-val" id="brokerStatusText">broker.emqx.io</span>
+                </div>
+
+                <div class="status-chip node-chip">
+                    <span class="chip-icon">⚡</span>
+                    <span class="chip-label">Node:</span>
+                    <span class="chip-val" id="nodeIdText">esp32c3_node01</span>
+                </div>
+
+                <button class="sound-toggle-btn" id="soundToggleBtn" title="Bật/Tắt chuông báo động trên trình duyệt">
+                    <span class="sound-icon" id="soundIcon">🔔</span>
+                    <span class="sound-text" id="soundText">Còi: BẬT</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Container -->
+    <main class="dashboard-wrapper">
+        <!-- Banner cảnh báo toàn màn hình khi Nguy cơ cao -->
+        <div class="alert-banner" id="alertBanner" style="display: none;">
+            <div class="alert-content">
+                <span class="alert-icon">⚠️</span>
+                <div class="alert-text">
+                    <strong>CẢNH BÁO NGUY CƠ SẠT LỞ CẤP BÁCH!</strong>
+                    <span>Hệ thống phát hiện đất bão hòa nước và chuyển vị trượt sườn vượt ngưỡng an toàn. Yêu cầu sơ tán!</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4 Hero Metric Cards -->
+        <section class="cards-grid">
+            <!-- Card 1: AI TinyML Assessment -->
+            <div class="metric-card card-ai-risk" id="cardRisk">
+                <div class="card-header">
+                    <span class="card-title">ĐÁNH GIÁ NGUY CƠ TINYML</span>
+                    <span class="live-tag">LIVE AI</span>
+                </div>
+                <div class="card-body">
+                    <div class="risk-badge badge-normal" id="riskBadge">
+                        <span class="risk-dot"></span>
+                        <span class="risk-title" id="riskTitle">BÌNH THƯỜNG</span>
+                    </div>
+                    <div class="risk-detail">
+                        <span class="risk-desc" id="riskDesc">Sườn dốc và độ ẩm đất ở ngưỡng an toàn</span>
+                        <div class="confidence-bar-wrap">
+                            <span class="conf-label">Độ tin cậy AI:</span>
+                            <span class="conf-val" id="riskConf">98%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span>Mô hình: <strong>MLP Int8 (3 -> 8 -> 3)</strong></span>
+                    <span class="last-seen" id="lastSeenText">Cập nhật: Vừa xong</span>
+                </div>
+            </div>
+
+            <!-- Card 2: Soil Moisture -->
+            <div class="metric-card card-moisture">
+                <div class="card-header">
+                    <span class="card-title">ĐỘ ẨM ĐẤT (SOIL MOISTURE)</span>
+                    <span class="metric-icon">💧</span>
+                </div>
+                <div class="card-body">
+                    <div class="metric-hero">
+                        <span class="metric-number" id="moistureVal">0.0</span>
+                        <span class="metric-unit">%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill fill-moisture" id="moistureBar" style="width: 0%;"></div>
+                    </div>
+                    <div class="metric-sub-info">
+                        <span class="sub-state" id="moistureState">Trạng thái: Khô ráo</span>
+                        <span class="sub-threshold">Ngưỡng bão hòa: &gt;70%</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span>Cảm biến: <strong>Capacitive ADC1 (GPIO1)</strong></span>
+                </div>
+            </div>
+
+            <!-- Card 3: Tilt Angle -->
+            <div class="metric-card card-tilt">
+                <div class="card-header">
+                    <span class="card-title">GÓC NGHIÊNG (TILT ANGLE)</span>
+                    <span class="metric-icon">📐</span>
+                </div>
+                <div class="card-body">
+                    <div class="metric-hero">
+                        <span class="metric-number" id="tiltAngleVal">0.00</span>
+                        <span class="metric-unit">°</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill fill-tilt" id="tiltAngleBar" style="width: 0%;"></div>
+                    </div>
+                    <div class="metric-sub-info">
+                        <span class="sub-state" id="tiltAngleState">Địa hình: Ổn định</span>
+                        <span class="sub-threshold">Ngưỡng nguy hiểm: &gt;20°</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span>Cảm biến: <strong>MPU-6050 3-Axis Accel</strong></span>
+                </div>
+            </div>
+
+            <!-- Card 4: Tilt Rate -->
+            <div class="metric-card card-rate">
+                <div class="card-header">
+                    <span class="card-title">TỐC ĐỘ BIẾN THIÊN GÓC</span>
+                    <span class="metric-icon">⚡</span>
+                </div>
+                <div class="card-body">
+                    <div class="metric-hero">
+                        <span class="metric-number" id="tiltRateVal">0.000</span>
+                        <span class="metric-unit">°/phút</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill fill-rate" id="tiltRateBar" style="width: 0%;"></div>
+                    </div>
+                    <div class="metric-sub-info">
+                        <span class="sub-state" id="tiltRateState">Chuyển động: Đứng yên</span>
+                        <span class="sub-threshold">Ngưỡng sạt: &gt;0.4°/p</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span>Cảm biến: <strong>MPU-6050 Gyroscope</strong></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Softmax Distribution Section -->
+        <section class="section-box ai-breakdown-box">
+            <div class="section-title-wrap">
+                <div class="title-with-badge">
+                    <h2>PHÂN BỐ XÁC SUẤT SUY LUẬN TINYML SOFTMAX</h2>
+                    <span class="chip-badge">TFLITE MICRO EDGE INFERENCE</span>
+                </div>
+                <span class="runtime-info">Thời gian suy luận: <strong>~2.4 ms</strong> trên ESP32-C3</span>
+            </div>
+
+            <div class="stacked-bar-container">
+                <div class="stacked-seg seg-normal" id="barSegNormal" style="width: 100%;" title="An toàn"></div>
+                <div class="stacked-seg seg-attention" id="barSegAttention" style="width: 0%;" title="Chú ý"></div>
+                <div class="stacked-seg seg-danger" id="barSegDanger" style="width: 0%;" title="Nguy cơ cao"></div>
+            </div>
+
+            <div class="prob-meters-grid">
+                <div class="prob-item item-normal">
+                    <div class="prob-header">
+                        <span class="prob-dot dot-normal"></span>
+                        <span class="prob-name">Cấp 0: An toàn (Bình thường)</span>
+                        <span class="prob-val" id="probNormalVal">100.0%</span>
+                    </div>
+                    <div class="prob-line-bg"><div class="prob-line-fill fill-green" id="probNormalLine" style="width: 100%;"></div></div>
+                </div>
+
+                <div class="prob-item item-attention">
+                    <div class="prob-header">
+                        <span class="prob-dot dot-attention"></span>
+                        <span class="prob-name">Cấp 1: Chú ý (Có bất thường)</span>
+                        <span class="prob-val" id="probAttentionVal">0.0%</span>
+                    </div>
+                    <div class="prob-line-bg"><div class="prob-line-fill fill-yellow" id="probAttentionLine" style="width: 0%;"></div></div>
+                </div>
+
+                <div class="prob-item item-danger">
+                    <div class="prob-header">
+                        <span class="prob-dot dot-danger"></span>
+                        <span class="prob-name">Cấp 2: Nguy cơ cao (Sạt lở)</span>
+                        <span class="prob-val" id="probDangerVal">0.0%</span>
+                    </div>
+                    <div class="prob-line-bg"><div class="prob-line-fill fill-red" id="probDangerLine" style="width: 0%;"></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Real-time Charts Section -->
+        <section class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <h3>BIỂU ĐỒ CẢM BIẾN THỜI GIAN THỰC</h3>
+                        <p>Độ ẩm đất (%) & Góc nghiêng (°) theo thời gian</p>
+                    </div>
+                    <div class="chart-legend-custom">
+                        <span class="leg-item leg-blue">● Độ ẩm đất (%)</span>
+                        <span class="leg-item leg-orange">● Góc nghiêng (°)</span>
+                    </div>
+                </div>
+                <div class="chart-canvas-wrap">
+                    <canvas id="sensorChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <h3>XU HƯỚNG XÁC SUẤT TINYML AI</h3>
+                        <p>Diễn biến xác suất An toàn, Chú ý và Nguy cơ cao</p>
+                    </div>
+                    <div class="chart-legend-custom">
+                        <span class="leg-item leg-green">● An toàn</span>
+                        <span class="leg-item leg-yellow">● Chú ý</span>
+                        <span class="leg-item leg-red">● Nguy cơ cao</span>
+                    </div>
+                </div>
+                <div class="chart-canvas-wrap">
+                    <canvas id="probChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lower Section: Live Stream Table + Simulation Controls -->
+        <section class="bottom-grid">
+            <!-- Telemetry Stream Table -->
+            <div class="table-card">
+                <div class="table-header">
+                    <div class="table-title">
+                        <h3>NHẬT KÝ BẢN TIN TELEMETRY GẦN NHẤT</h3>
+                        <p>Dữ liệu nhận qua giao thức MQTT từ trạm đo</p>
+                    </div>
+                    <div class="table-actions">
+                        <span class="packet-counter">Tổng nhận: <strong id="totalPacketsCount">0</strong></span>
+                        <button class="btn-clear" id="btnClearHistory" title="Xóa toàn bộ lịch sử">Xóa lịch sử</button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>Độ ẩm đất</th>
+                                <th>Góc nghiêng</th>
+                                <th>Vận tốc góc</th>
+                                <th>Cấp rủi ro</th>
+                                <th>Trạng thái AI</th>
+                                <th>Độ tin cậy</th>
+                            </tr>
+                        </thead>
+                        <tbody id="telemetryTableBody">
+                            <tr>
+                                <td colspan="7" class="empty-row">Đang chờ bản tin telemetry đầu tiên từ thiết bị...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Controls & Statistics Box -->
+            <div class="controls-card">
+                <div class="ctrl-header">
+                    <h3>BẢNG ĐIỀU KHIỂN & KIỂM THỬ</h3>
+                    <p>Giả lập nhanh các kịch bản kiểm thử giao diện</p>
+                </div>
+
+                <div class="test-buttons-group">
+                    <button class="btn-test btn-test-normal" onclick="simulatePacket(0)">
+                        <span>🟢</span>
+                        <div>
+                            <strong>Test Cấp 0: An toàn</strong>
+                            <small>Độ ẩm 25% | Góc 2° | V_góc 0.02</small>
+                        </div>
+                    </button>
+
+                    <button class="btn-test btn-test-attention" onclick="simulatePacket(1)">
+                        <span>🟡</span>
+                        <div>
+                            <strong>Test Cấp 1: Chú ý</strong>
+                            <small>Độ ẩm 55% | Góc 14° | V_góc 0.25</small>
+                        </div>
+                    </button>
+
+                    <button class="btn-test btn-test-danger" onclick="simulatePacket(2)">
+                        <span>🔴</span>
+                        <div>
+                            <strong>Test Cấp 2: Nguy cơ cao</strong>
+                            <small>Độ ẩm 82% | Góc 38° | V_góc 0.85</small>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="stats-summary-box">
+                    <h4>THỐNG KÊ HOẠT ĐỘNG</h4>
+                    <div class="stats-list">
+                        <div class="stat-row">
+                            <span>Số lần An toàn (Cấp 0):</span>
+                            <strong class="text-green" id="statNormalCount">0</strong>
+                        </div>
+                        <div class="stat-row">
+                            <span>Số lần Cảnh báo (Cấp 1):</span>
+                            <strong class="text-yellow" id="statAttentionCount">0</strong>
+                        </div>
+                        <div class="stat-row">
+                            <span>Số lần Nguy hiểm (Cấp 2):</span>
+                            <strong class="text-red" id="statDangerCount">0</strong>
+                        </div>
+                        <div class="stat-row">
+                            <span>Góc nghiêng lớn nhất ghi nhận:</span>
+                            <strong id="statMaxTilt">0.0°</strong>
+                        </div>
+                        <div class="stat-row">
+                            <span>Độ ẩm trung bình:</span>
+                            <strong id="statAvgMoisture">0.0%</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="dashboard-footer">
+        <p>Đồ án IoT & TinyML - Giám sát & Cảnh báo Sạt lở đất | ESP32-C3 RISC-V & TensorFlow Lite for Microcontrollers</p>
+    </footer>
+
+    <!-- Custom JS -->
+    <script src="{% static 'monitoring/js/dashboard.js' %}"></script>
+</body>
+</html>
