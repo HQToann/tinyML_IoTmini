@@ -1,62 +1,62 @@
-# File quản lý dependency của Pipenv
-Pipfile
-Pipfile.lock
+# # File quản lý dependency của Pipenv
+# Pipfile
+# Pipfile.lock
 
-# Thư mục cache Python
-__pycache__/
-*.py[cod]
+# # Thư mục cache Python
+# __pycache__/
+# *.py[cod]
 
-# Biến môi trường
-.env
-.env.*
+# # Biến môi trường
+# .env
+# .env.*
 
-# Vẫn theo dõi file mẫu biến môi trường
-!.env.example
+# # Vẫn theo dõi file mẫu biến môi trường
+# !.env.example
 
-# Cache của các công cụ kiểm thử và phân tích mã nguồn
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-
-
-# Các file model và checkpoint được sinh ra khi huấn luyện
-*.keras
-*.h5
+# # Cache của các công cụ kiểm thử và phân tích mã nguồn
+# .pytest_cache/
+# .mypy_cache/
+# .ruff_cache/
 
 
-# Thư mục build và thành phần được tạo tự động
-/build/
-/managed_components/
-
-# File cấu hình cục bộ của ESP-IDF
-/sdkconfig
-/sdkconfig.old
-
-# Thư mục build của PlatformIO
-.pio/
+# # Các file model và checkpoint được sinh ra khi huấn luyện
+# *.keras
+# *.h5
 
 
-# Thư viện cài đặt từ npm
-node_modules/
+# # Thư mục build và thành phần được tạo tự động
+# /build/
+# /managed_components/
 
-# Thư mục build sau khi đóng gói ứng dụng
-dist/
+# # File cấu hình cục bộ của ESP-IDF
+# /sdkconfig
+# /sdkconfig.old
 
-# Kết quả đo độ bao phủ kiểm thử
-coverage/
+# # Thư mục build của PlatformIO
+# .pio/
 
-# File log của npm
-npm-debug.log*
 
-# Các file log
-*.log
+# # Thư viện cài đặt từ npm
+# node_modules/
 
-# File sinh ra trên macOS
-.DS_Store
+# # Thư mục build sau khi đóng gói ứng dụng
+# dist/
 
-# File sinh ra trên Windows
-Thumbs.db
+# # Kết quả đo độ bao phủ kiểm thử
+# coverage/
 
-# Thiết lập của IntelliJ IDEA / PyCharm
-.idea/
-.vscode/
+# # File log của npm
+# npm-debug.log*
+
+# # Các file log
+# *.log
+
+# # File sinh ra trên macOS
+# .DS_Store
+
+# # File sinh ra trên Windows
+# Thumbs.db
+
+# # Thiết lập của IntelliJ IDEA / PyCharm
+# .idea/
+# .vscode/
