@@ -14,15 +14,13 @@ from .models import Reading, ThresholdConfig
 
 
 def dashboard(request):
-    return render(request, "telemetry/index.html", {
-        "config": ThresholdConfig.current(),
-    })
+    return render(request, "telemetry/index.html", {"config": ThresholdConfig.current()})
 
 
 def norm(value):
     text = unicodedata.normalize("NFD", str(value).strip().lower())
-    text = "".join(c for c in text if unicodedata.category(c) != "Mn")
-    return "".join(c for c in text if c.isalnum())
+    text = "".join(char for char in text if unicodedata.category(char) != "Mn")
+    return "".join(char for char in text if char.isalnum())
 
 
 def status_value(value):
@@ -36,7 +34,7 @@ def status_value(value):
 
 
 def number(data, keys, label, low, high):
-    value = next((data[k] for k in keys if k in data), None)
+    value = next((data[key] for key in keys if key in data), None)
     try:
         value = float(value)
     except (TypeError, ValueError):
@@ -50,7 +48,6 @@ def serialize(reading):
     return {
         "id": reading.id,
         "device_id": reading.device_id,
-        "soil_moisture_pct": reading.soil_moisture_pct,
         "tilt_angle_deg": reading.tilt_angle_deg,
         "tilt_rate_deg_per_min": reading.tilt_rate_deg_per_min,
         "status": reading.status,
@@ -63,7 +60,6 @@ def config_payload(config):
     return {
         "profile": config.profile_name,
         "thresholds": {
-            "moisture_attention_pct": config.moisture_attention_pct,
             "attention_angle_deg": config.attention_angle_deg,
             "high_risk_angle_deg": config.high_risk_angle_deg,
             "attention_rate_deg_per_min": config.attention_rate_deg_per_min,
@@ -78,7 +74,6 @@ def update_thresholds(request):
     config = ThresholdConfig.current()
     try:
         values = {
-            "moisture_attention_pct": number(request.POST, ("moisture_attention_pct",), "ngưỡng độ ẩm", 0, 100),
             "attention_angle_deg": number(request.POST, ("attention_angle_deg",), "góc chú ý", 0, 360),
             "high_risk_angle_deg": number(request.POST, ("high_risk_angle_deg",), "góc nguy cơ cao", 0, 360),
             "attention_rate_deg_per_min": number(request.POST, ("attention_rate_deg_per_min",), "tốc độ chú ý", 0, 1000000),
@@ -89,14 +84,13 @@ def update_thresholds(request):
         if values["attention_rate_deg_per_min"] >= values["high_risk_rate_deg_per_min"]:
             raise ValueError("Tốc độ nguy cơ cao phải lớn hơn tốc độ chú ý.")
 
-        config.profile_name = request.POST.get("profile_name", "Mô hình minh họa").strip()[:64] or "Mô hình minh họa"
+        config.profile_name = request.POST.get("profile_name", "Mô hình nhà").strip()[:64] or "Mô hình nhà"
         for field, value in values.items():
             setattr(config, field, value)
         config.save()
-        messages.success(request, "Đã lưu ngưỡng. ESP32 sẽ nhận cấu hình ở lần đồng bộ tiếp theo.")
+        messages.success(request, "Đã lưu ngưỡng nghiêng. ESP32 sẽ nhận cấu hình ở lần đồng bộ tiếp theo.")
     except ValueError as error:
         messages.error(request, str(error))
-
     return HttpResponseRedirect("/")
 
 
@@ -108,7 +102,7 @@ def readings_api(request):
             limit = min(max(int(request.GET.get("limit", "60")), 1), 200)
         except ValueError:
             return JsonResponse({"error": "limit phải là số nguyên."}, status=400)
-        return JsonResponse({"items": [serialize(r) for r in Reading.objects.all()[:limit]]})
+        return JsonResponse({"items": [serialize(item) for item in Reading.objects.all()[:limit]]})
 
     token = request.headers.get("X-API-Key", "")
     if not secrets.compare_digest(token, settings.IOT_API_TOKEN):
@@ -118,7 +112,6 @@ def readings_api(request):
         data = json.loads(request.body.decode("utf-8"))
         if not isinstance(data, dict):
             raise ValueError("Body JSON phải là object.")
-        moisture = number(data, ("soil_moisture_pct", "soil_moisture", "do_am"), "độ ẩm", 0, 100)
         angle = number(data, ("tilt_angle_deg", "tilt_angle", "goc_nghieng"), "góc nghiêng", -360, 360)
         rate = number(data, ("tilt_rate_deg_per_min", "tilt_rate", "toc_do_doi_goc"), "tốc độ đổi góc", 0, 1000000)
         state = status_value(data.get("status", data.get("state", data.get("trang_thai", data.get("nhan")))))
@@ -132,7 +125,6 @@ def readings_api(request):
 
     reading = Reading.objects.create(
         device_id=device,
-        soil_moisture_pct=moisture,
         tilt_angle_deg=angle,
         tilt_rate_deg_per_min=rate,
         status=state,
@@ -151,4 +143,4 @@ def config_api(request):
 
 @require_http_methods(["GET"])
 def health_api(request):
-    return JsonResponse({"ok": True, "service": "landslide-dashboard"})
+    return JsonResponse({"ok": True, "service": "house-tilt-dashboard"})
