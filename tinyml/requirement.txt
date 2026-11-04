@@ -1,0 +1,4 @@
+numpy # Xử lý số liệu
+pandas # Đọc/ghi CSV
+tensorflow # Huấn luyện mô hình
+scikit-learn # Tiền xử lý dữ liệu

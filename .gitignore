@@ -1,0 +1,105 @@
+# ==============================================================================
+# .gitignore - DỰ ÁN IOT TINYML GIÁM SÁT SẠT LỞ ĐẤT (ESP32-C3 & DJANGO)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Cơ sở dữ liệu cục bộ (Local Databases) - BẢO MẬT & TRÁNH PHÌNH REPO
+# ------------------------------------------------------------------------------
+*.sqlite3
+*.db
+db.sqlite3
+db.sqlite3-journal
+
+# ------------------------------------------------------------------------------
+# 2. Python & Django Cache (Tuyệt đối không commit cache bytecode)
+# ------------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Django staticfiles & media tự động sinh
+static_collected/
+staticfiles/
+media/
+
+# Quản lý môi trường ảo Python
+.env
+.env.*
+!.env.example
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# File quản lý dependency cục bộ (nếu dùng Pipenv)
+Pipfile
+Pipfile.lock
+
+# Công cụ kiểm thử & phân tích mã nguồn
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+nosetests.xml
+coverage.xml
+
+# 3. Firmware ESP32 & PlatformIO Build Artifacts
+.pio/
+.pioenvs/
+.piolibdeps/
+build/
+managed_components/
+sdkconfig
+sdkconfig.old
+*.bin
+*.elf
+*.hex
+*.map
+
+# 4. TinyML / Machine Learning Checkpoints & Temp Files
+*.h5
+*.keras
+checkpoint
+checkpoints/
+*.ckpt*
+*.pb
+
+# 5. IDEs & Code Editors (Cấu hình riêng tư của từng máy lập trình)
+.vscode/
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# 6. File rác hệ điều hành (OS Generated Files)
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# 7. Nhật ký & Tệp tạm (Logs & Temporary Files)
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+tmp/
+temp/
