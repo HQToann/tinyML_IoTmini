@@ -2,6 +2,8 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Avg, Max, Count, Q
+from django.utils import timezone
+import os
 import json
 
 from monitoring.models import TelemetryRecord
@@ -18,8 +20,19 @@ def index(request):
 
 def api_latest(request):
     """API trả về bản ghi telemetry mới nhất."""
+    # Nếu chạy kiến trúc Microservices riêng rẽ, lấy bản tin mới nhất trực tiếp từ DB
+    if os.environ.get('DISABLE_INTERNAL_MQTT_THREAD') == '1':
+        last_rec = TelemetryRecord.objects.first()
+        if last_rec:
+            latest = last_rec.to_dict()
+            age_sec = int((timezone.now() - last_rec.created_at).total_seconds())
+            latest['connected'] = age_sec < 15
+            latest['last_seen_seconds'] = age_sec
+            return JsonResponse(latest)
+        return JsonResponse(get_latest_data())
+
     latest = get_latest_data()
-    # Nếu trong cache chưa có gì hoặc vừa khởi động, thử query từ database
+    # Nếu trong cache chưa có gì hoặc vừa khởi động, query từ database
     if latest['timestamp'] == '--:--:--':
         last_rec = TelemetryRecord.objects.first()
         if last_rec:
@@ -35,7 +48,7 @@ def api_history(request):
     records.reverse()
 
     data = {
-        'timestamps': [r.created_at.strftime('%H:%M:%S') for r in records],
+        'timestamps': [timezone.localtime(r.created_at).strftime('%H:%M:%S') for r in records],
         'soil_moisture': [round(r.soil_moisture, 1) for r in records],
         'tilt_angle': [round(r.tilt_angle, 2) for r in records],
         'tilt_rate': [round(r.tilt_rate, 3) for r in records],

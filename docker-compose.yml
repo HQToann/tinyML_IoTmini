@@ -1,0 +1,92 @@
+# ==============================================================================
+# DOCKER COMPOSE - KIẾN TRÚC MICROSERVICES IOT TINYML CẢNH BÁO SẠT LỞ
+# Hệ thống gồm:
+#   - 3 Microservices chạy ngầm 24/7 (Broker, Worker, Dashboard)
+#   - 1 On-demand Service biên dịch Firmware (PlatformIO Core Builder)
+# ==============================================================================
+
+networks:
+  landslide_net:
+    driver: bridge
+
+volumes:
+  mosquitto_data:
+  pio_cache:
+
+services:
+  # ============================================================================
+  # SERVICE 1: TRẠM TRUNG CHUYỂN MQTT (ECLIPSE MOSQUITTO 2.0)
+  # ============================================================================
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0
+    container_name: landslide_broker
+    restart: unless-stopped
+    ports:
+      - "1883:1883"   # Cổng kết nối MQTT tiêu chuẩn (TCP)
+      - "9001:9001"   # Cổng kết nối WebSocket
+    volumes:
+      - ./docker/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto_data:/mosquitto/data
+    networks:
+      - landslide_net
+
+  # ============================================================================
+  # SERVICE 2: TIẾN TRÌNH THU THẬP DỮ LIỆU ĐỘC LẬP (DATA INGESTION WORKER)
+  # ============================================================================
+  mqtt-worker:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: landslide_worker
+    restart: unless-stopped
+    command: python manage.py run_mqtt_worker
+    environment:
+      - PYTHONUNBUFFERED=1
+      # Mặc định lắng nghe broker.emqx.io khớp 100% với firmware ESP32 thật
+      # (Đổi thành "mqtt-broker" nếu bạn muốn ESP32 truyền vào Mosquitto nội bộ)
+      - MQTT_BROKER_HOST=broker.emqx.io
+      - MQTT_BROKER_PORT=1883
+      - MQTT_TOPIC=landslide/telemetry
+    volumes:
+      - ./dashboard/db.sqlite3:/app/db.sqlite3
+    networks:
+      - landslide_net
+
+  # ============================================================================
+  # SERVICE 3: MÁY CHỦ WEB GIAO DIỆN & REST API (DJANGO APPLICATION SERVER)
+  # ============================================================================
+  web-dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: landslide_web
+    restart: unless-stopped
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"   # Mở cổng hiển thị Dashboard tại http://localhost:8000
+    environment:
+      - PYTHONUNBUFFERED=1
+      # Tắt luồng MQTT ngầm trong Web vì Service 2 (mqtt-worker) đã xử lý độc lập
+      - DISABLE_INTERNAL_MQTT_THREAD=1
+    volumes:
+      - ./dashboard/db.sqlite3:/app/db.sqlite3
+    depends_on:
+      - mqtt-worker
+    networks:
+      - landslide_net
+
+  # ============================================================================
+  # SERVICE 4 (ON-DEMAND): TRÌNH BIÊN DỊCH FIRMWARE ESP32-C3 (PLATFORMIO BUILDER)
+  # Chỉ chạy khi bạn chủ động gọi lệnh biên dịch (sử dụng Docker Compose Profile: tools)
+  # Không tự động chạy làm tốn tài nguyên khi bật "docker compose up -d"
+  # ============================================================================
+  firmware-builder:
+    image: platformio/platformio-core:latest
+    container_name: landslide_firmware_builder
+    working_dir: /project
+    volumes:
+      - ./firmware:/project
+      - pio_cache:/root/.platformio
+    command: run
+    profiles:
+      - tools

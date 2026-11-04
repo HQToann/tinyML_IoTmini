@@ -76,8 +76,8 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Cấu hình MQTT Broker kết nối với ESP32
-MQTT_BROKER_HOST = 'broker.emqx.io'
-MQTT_BROKER_PORT = 1883
-MQTT_TOPIC = 'landslide/telemetry'
-MQTT_CLIENT_ID = 'django_landslide_dashboard_backend'
+# Cấu hình MQTT Broker kết nối với ESP32 (Hỗ trợ nạp động qua biến môi trường Docker)
+MQTT_BROKER_HOST = os.environ.get('MQTT_BROKER_HOST', 'broker.emqx.io')
+MQTT_BROKER_PORT = int(os.environ.get('MQTT_BROKER_PORT', 1883))
+MQTT_TOPIC = os.environ.get('MQTT_TOPIC', 'landslide/telemetry')
+MQTT_CLIENT_ID = os.environ.get('MQTT_CLIENT_ID', 'django_landslide_dashboard_backend')

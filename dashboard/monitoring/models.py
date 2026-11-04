@@ -25,9 +25,11 @@ class TelemetryRecord(models.Model):
         verbose_name_plural = "Lịch sử giám sát cảm biến"
 
     def __str__(self):
-        return f"[{self.created_at.strftime('%H:%M:%S')}] {self.node_id} - Mức {self.risk_level} ({self.status})"
+        local_time = timezone.localtime(self.created_at).strftime('%H:%M:%S')
+        return f"[{local_time}] {self.node_id} - Mức {self.risk_level} ({self.status})"
 
     def to_dict(self):
+        local_dt = timezone.localtime(self.created_at)
         return {
             'id': self.id,
             'node_id': self.node_id,
@@ -39,6 +41,6 @@ class TelemetryRecord(models.Model):
             'prob_normal': round(self.prob_normal * 100, 1),
             'prob_attention': round(self.prob_attention * 100, 1),
             'prob_high_risk': round(self.prob_high_risk * 100, 1),
-            'timestamp': self.created_at.strftime('%H:%M:%S'),
-            'date': self.created_at.strftime('%d/%m/%Y'),
+            'timestamp': local_dt.strftime('%H:%M:%S'),
+            'date': local_dt.strftime('%d/%m/%Y'),
         }

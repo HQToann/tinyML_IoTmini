@@ -1,18 +1,23 @@
-# ==============================================================================
-# .gitignore - DỰ ÁN IOT TINYML GIÁM SÁT SẠT LỞ ĐẤT (ESP32-C3 & DJANGO)
-# ==============================================================================
-
-# ------------------------------------------------------------------------------
-# 1. Cơ sở dữ liệu cục bộ (Local Databases) - BẢO MẬT & TRÁNH PHÌNH REPO
-# ------------------------------------------------------------------------------
+# 1. Cơ sở dữ liệu cục bộ (Local Databases & WAL Logs)
 *.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
 *.db
+*.db-journal
+*.db-wal
+*.db-shm
 db.sqlite3
 db.sqlite3-journal
+db.sqlite3-wal
+db.sqlite3-shm
 
-# ------------------------------------------------------------------------------
-# 2. Python & Django Cache (Tuyệt đối không commit cache bytecode)
-# ------------------------------------------------------------------------------
+# 2. Docker & Mosquitto Local Data
+docker/mosquitto/data/
+docker/mosquitto/log/
+*.pid
+
+# 3. Python & Django Artifacts
 __pycache__/
 *.py[cod]
 *$py.class
@@ -24,7 +29,7 @@ static_collected/
 staticfiles/
 media/
 
-# Quản lý môi trường ảo Python
+# Quản lý môi trường ảo & cấu hình bảo mật
 .env
 .env.*
 !.env.example
@@ -35,11 +40,11 @@ ENV/
 env.bak/
 venv.bak/
 
-# File quản lý dependency cục bộ (nếu dùng Pipenv)
+# Quản lý dependency môi trường cục bộ
 Pipfile
 Pipfile.lock
 
-# Công cụ kiểm thử & phân tích mã nguồn
+# Kiểm thử & độ bao phủ mã nguồn
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
@@ -48,10 +53,11 @@ htmlcov/
 nosetests.xml
 coverage.xml
 
-# 3. Firmware ESP32 & PlatformIO Build Artifacts
+# 4. Firmware ESP32 & PlatformIO Build Artifacts
 .pio/
 .pioenvs/
 .piolibdeps/
+.clangd/
 build/
 managed_components/
 sdkconfig
@@ -61,7 +67,8 @@ sdkconfig.old
 *.hex
 *.map
 
-# 4. TinyML / Machine Learning Checkpoints & Temp Files
+# 5. TinyML Checkpoints & File Huấn Luyện Tạm Thời
+# (Giữ lại tinyml/model/model_int8.tflite và data.csv)
 *.h5
 *.keras
 checkpoint
@@ -69,7 +76,7 @@ checkpoints/
 *.ckpt*
 *.pb
 
-# 5. IDEs & Code Editors (Cấu hình riêng tư của từng máy lập trình)
+# 6. IDEs & Editors (Cấu hình máy cá nhân)
 .vscode/
 !.vscode/tasks.json
 !.vscode/launch.json
@@ -80,7 +87,7 @@ checkpoints/
 *.swo
 *~
 
-# 6. File rác hệ điều hành (OS Generated Files)
+# 7. File rác hệ điều hành (OS Generated Files)
 # Windows
 Thumbs.db
 Thumbs.db:encryptable
@@ -96,7 +103,7 @@ $RECYCLE.BIN/
 Icon
 ._*
 
-# 7. Nhật ký & Tệp tạm (Logs & Temporary Files)
+# 8. Nhật ký & Tệp tạm (Logs & Temporary Files)
 *.log
 npm-debug.log*
 yarn-debug.log*
