@@ -20,7 +20,9 @@ private:
     float _base_tilt_angle;
     float _last_tilt_angle;
     float _current_tilt_rate;
-    float _calibrated_zero_angle;
+    float _calib_gx;
+    float _calib_gy;
+    float _calib_gz;
     unsigned long _base_time_ms;
     unsigned long _last_read_ms;
     bool _has_base_mark;

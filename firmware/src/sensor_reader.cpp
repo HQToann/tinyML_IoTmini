@@ -75,7 +75,8 @@ static bool mpu_read_accel_filtered(float& ax, float& ay, float& az, int num_sam
 
 SensorReader::SensorReader()
     : _base_tilt_angle(0.0f), _last_tilt_angle(0.0f), _current_tilt_rate(0.0f),
-      _calibrated_zero_angle(0.0f), _base_time_ms(0), _last_read_ms(0),
+      _calib_gx(0.0f), _calib_gy(0.0f), _calib_gz(1.0f),
+      _base_time_ms(0), _last_read_ms(0),
       _has_base_mark(false), _mpu_ready(false) {}
 
 bool SensorReader::begin() {
@@ -109,21 +110,35 @@ bool SensorReader::begin() {
         return false;
     }
 
-    // Tự động lấy mẫu mốc 0° ban đầu (30 mẫu trung bình)
-    float sum_angle = 0.0f;
+    // Tự động hiệu chuẩn mốc Vector 3D ban đầu (30 mẫu trung bình)
+    float sum_x = 0.0f, sum_y = 0.0f, sum_z = 0.0f;
     int samples = 0;
     for (int i = 0; i < 30; i++) {
         if (mpu_read_accel(ax, ay, az)) {
-            float ha = sqrtf(ax * ax + ay * ay);
-            sum_angle += atan2f(ha, fabsf(az)) * 180.0f / (float)M_PI;
+            sum_x += ax;
+            sum_y += ay;
+            sum_z += az;
             samples++;
         }
         delay(15);
     }
-    _calibrated_zero_angle = (samples > 0) ? (sum_angle / samples) : 0.0f;
+    
+    if (samples > 0) {
+        float avg_x = sum_x / samples;
+        float avg_y = sum_y / samples;
+        float avg_z = sum_z / samples;
+        float norm = sqrtf(avg_x * avg_x + avg_y * avg_y + avg_z * avg_z);
+        if (norm > 0.001f) {
+            _calib_gx = avg_x / norm;
+            _calib_gy = avg_y / norm;
+            _calib_gz = avg_z / norm;
+        }
+    }
 
-    Serial.printf("[OK] MPU-6050 đã sẵn sàng! (WHO=0x%02X) | Mốc góc gốc: %.2f°\r\n",
-                  who_val, _calibrated_zero_angle);
+    // Tính góc lệch tĩnh của mặt bàn ban đầu để hiển thị thông tin
+    float initial_tilt = acosf(constrain(_calib_gz, -1.0f, 1.0f)) * 180.0f / (float)M_PI;
+    Serial.printf("[OK] MPU-6050 đã sẵn sàng! (WHO=0x%02X) | Mốc Vector 3D: [%.3f, %.3f, %.3f] (Lệch tĩnh: %.2f°)\r\n",
+                  who_val, _calib_gx, _calib_gy, _calib_gz, initial_tilt);
     _mpu_ready = true;
     return true;
 }
@@ -146,23 +161,37 @@ SensorData SensorReader::read() {
         return data;
     }
 
-    // 2. Tính góc nghiêng tương đối so với mốc bàn ban đầu
-    float horizontal_accel = sqrtf(ax * ax + ay * ay);
-    float raw_angle = atan2f(horizontal_accel, fabsf(az)) * 180.0f / (float)M_PI;
-
-    if (!isfinite(raw_angle)) {
+    // 2. Tính góc nghiêng không gian 3D qua Tích vô hướng (Vector Dot Product)
+    float cur_norm = sqrtf(ax * ax + ay * ay + az * az);
+    if (cur_norm < 0.001f) {
         data.tilt_angle_deg = _last_tilt_angle;
     } else {
-        float calc_angle = fabsf(raw_angle - _calibrated_zero_angle);
+        float nx = ax / cur_norm;
+        float ny = ay / cur_norm;
+        float nz = az / cur_norm;
+
+        // cos(theta) = g0 . gt
+        float dot = _calib_gx * nx + _calib_gy * ny + _calib_gz * nz;
+        dot = constrain(dot, -1.0f, 1.0f);
+        float calc_angle = acosf(dot) * 180.0f / (float)M_PI;
+
+        if (!isfinite(calc_angle)) {
+            calc_angle = _last_tilt_angle;
+        }
         
         // Vùng trễ (Deadband) chống rung: dưới 0.25° thì coi như nằm yên tuyệt đối = 0.00°
         if (calc_angle < 0.25f) {
             calc_angle = 0.0f;
         }
 
-        // Bộ lọc làm mịn EMA (Exponential Moving Average): 70% giá trị cũ + 30% giá trị mới
+        // Bộ lọc làm mịn EMA (Exponential Moving Average): 60% giá trị cũ + 40% giá trị mới
         if (!_has_base_mark) {
             data.tilt_angle_deg = calc_angle;
+        } else {
+            data.tilt_angle_deg = 0.6f * _last_tilt_angle + 0.4f * calc_angle;
+            if (data.tilt_angle_deg < 0.15f) data.tilt_angle_deg = 0.0f;
+        }
+    }
         } else {
             data.tilt_angle_deg = 0.6f * _last_tilt_angle + 0.4f * calc_angle;
             if (data.tilt_angle_deg < 0.15f) data.tilt_angle_deg = 0.0f;

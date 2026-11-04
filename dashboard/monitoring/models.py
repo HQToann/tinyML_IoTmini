@@ -12,7 +12,7 @@ class TelemetryRecord(models.Model):
     soil_moisture = models.FloatField(verbose_name="Độ ẩm đất (%)")
     tilt_angle = models.FloatField(verbose_name="Góc nghiêng (°)")
     tilt_rate = models.FloatField(verbose_name="Tốc độ đổi góc (°/phút)")
-    risk_level = models.IntegerField(choices=RISK_LEVEL_CHOICES, default=0, verbose_name="Mức rủi ro TinyML")
+    risk_level = models.IntegerField(choices=RISK_LEVEL_CHOICES, default=0, db_index=True, verbose_name="Mức rủi ro TinyML")
     status = models.CharField(max_length=64, default="Bình thường", verbose_name="Trạng thái phân loại")
     prob_normal = models.FloatField(default=1.0, verbose_name="Xác suất an toàn")
     prob_attention = models.FloatField(default=0.0, verbose_name="Xác suất chú ý")

@@ -132,4 +132,5 @@ void loop() {
                       mqtt_ok ? "Đã gửi [OK]" : "Chưa gửi [X]");
         Serial.printf("---------------------------------------------------------------\r\n");
     }
+    delay(5); // Nhường thời gian CPU cho FreeRTOS (Wi-Fi & TCP/IP stack)
 }

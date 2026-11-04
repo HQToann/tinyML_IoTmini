@@ -121,9 +121,11 @@ static const char TRANG_CAI_DAT_HTML[] PROGMEM = R"HTML(
 
 NetworkMQTT::NetworkMQTT()
     : _server(80), _mqttClient(_wifiClient), _setup_mode(false),
-      _button_press_start_ms(0), _last_reconnect_attempt_ms(0) {}
+      _button_press_start_ms(0), _last_reconnect_attempt_ms(0),
+      _last_wifi_reconnect_attempt_ms(0) {}
 
 void NetworkMQTT::begin() {
+    WiFi.setAutoReconnect(true);
     _mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
     _mqttClient.setBufferSize(512);
 
@@ -293,6 +295,14 @@ void NetworkMQTT::loop() {
             }
         } else {
             _mqttClient.loop();
+        }
+    } else {
+        // Tự động kiểm tra và thử kết nối lại Wi-Fi mỗi 10 giây nếu bị ngắt kết nối
+        unsigned long now_ms = millis();
+        if (now_ms - _last_wifi_reconnect_attempt_ms > 10000UL) {
+            _last_wifi_reconnect_attempt_ms = now_ms;
+            Serial.println("[Wi-Fi] Mất kết nối, đang tự động kết nối lại...");
+            WiFi.reconnect();
         }
     }
 }

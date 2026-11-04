@@ -40,6 +40,7 @@ private:
     bool _setup_mode;
     unsigned long _button_press_start_ms;
     unsigned long _last_reconnect_attempt_ms;
+    unsigned long _last_wifi_reconnect_attempt_ms;
 
     void _connectWiFiOrStartSetup();
     void _setupWebServerRoutes();

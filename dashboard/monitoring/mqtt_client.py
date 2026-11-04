@@ -88,6 +88,14 @@ def on_message(client, userdata, msg):
         update_latest_data(record.to_dict())
         print(f"[MQTT] Nhận dữ liệu ID={record.id} từ {node_id}: Đất={soil_moisture}%, Góc={tilt_angle}°, Cấp={risk_level} ({status})", flush=True)
 
+        # Tự động cắt tỉa database: Giữ tối đa 5000 bản ghi mới nhất để database luôn nhẹ và truy vấn dưới 5ms
+        if record.id % 200 == 0:
+            total_records = TelemetryRecord.objects.count()
+            if total_records > 5000:
+                cutoff_id = TelemetryRecord.objects.order_by('-id')[5000].id
+                TelemetryRecord.objects.filter(id__lt=cutoff_id).delete()
+                print(f"[DB Maintenance] Đã tự động dọn dẹp các bản ghi cũ, giữ lại 5000 bản ghi mới nhất.", flush=True)
+
     except Exception as e:
         print(f"[MQTT Error] Lỗi xử lý gói tin MQTT: {e}", flush=True)
         logger.error(f"Lỗi xử lý gói tin MQTT: {e}")

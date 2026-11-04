@@ -6,8 +6,6 @@
 #include <Preferences.h>
 #include <PubSubClient.h>
 #include <math.h>
-#include <Adafruit_MPU6050.h>
-#include <Adafruit_Sensor.h>
 
 // Tương thích cả Arduino IDE và PlatformIO
 #if __has_include(<TensorFlowLite_ESP32.h>)
@@ -23,9 +21,9 @@
   #define HAS_MICRO_ERROR_REPORTER 1
 #endif
 
-// File dữ liệu mô hình và thông số chuẩn hóa
-#include "model_data.h"
-#include "norm_params.h"
+// File dữ liệu mô hình và thông số chuẩn hóa (lưu trong include/)
+#include "include/model_data.h"
+#include "include/norm_params.h"
 
 // ==============================================================================
 // 1. CẤU HÌNH CHÂN (PINOUT) ESP32-C3 SUPER MINI (NHÀ MÔ HÌNH)
@@ -69,7 +67,54 @@ constexpr unsigned long CUA_SO_TOC_DO_MS = 60000UL;
 // Căn chỉnh 16-byte cho vùng nhớ Tensor Arena (16 KB)
 alignas(16) uint8_t vung_nho_tensor[16 * 1024];
 
-Adafruit_MPU6050 mpu;
+// Cấu hình I2C thanh ghi MPU-6050
+#define MPU_ADDR        0x68
+#define REG_PWR_MGMT_1  0x6B
+#define REG_ACCEL_CFG   0x1C
+#define REG_CONFIG      0x1A
+#define REG_WHO_AM_I    0x75
+#define REG_ACCEL_XOUT  0x3B
+
+static void mpu_write(uint8_t reg, uint8_t val) {
+  Wire.beginTransmission(MPU_ADDR);
+  Wire.write(reg);
+  Wire.write(val);
+  Wire.endTransmission();
+}
+
+static bool mpu_read_accel(float& ax, float& ay, float& az) {
+  Wire.beginTransmission(MPU_ADDR);
+  Wire.write(REG_ACCEL_XOUT);
+  if (Wire.endTransmission(false) != 0) return false;
+  if (Wire.requestFrom((uint8_t)MPU_ADDR, (uint8_t)6) < 6) return false;
+  uint8_t buf[6];
+  for (int i = 0; i < 6; i++) buf[i] = Wire.read();
+  int16_t rx = (int16_t)((buf[0] << 8) | buf[1]);
+  int16_t ry = (int16_t)((buf[2] << 8) | buf[3]);
+  int16_t rz = (int16_t)((buf[4] << 8) | buf[5]);
+  const float scale = 9.80665f / 16384.0f;
+  ax = rx * scale;
+  ay = ry * scale;
+  az = rz * scale;
+  return true;
+}
+
+static bool mpu_read_accel_filtered(float& ax, float& ay, float& az, int num_samples = 5) {
+  float sx = 0.0f, sy = 0.0f, sz = 0.0f;
+  int count = 0;
+  for (int i = 0; i < num_samples; i++) {
+    float x, y, z;
+    if (mpu_read_accel(x, y, z)) {
+      sx += x; sy += y; sz += z;
+      count++;
+    }
+    delay(2);
+  }
+  if (count == 0) return false;
+  ax = sx / count; ay = sy / count; az = sz / count;
+  return true;
+}
+
 tflite::MicroMutableOpResolver<3> bo_toan_tu;
 const tflite::Model* mo_hinh = nullptr;
 tflite::MicroInterpreter* bo_chay_model = nullptr;
@@ -375,20 +420,18 @@ bool khoi_tao_model() {
 }
 
 bool doc_goc_nghieng(float& goc_deg) {
-  sensors_event_t su_kien_gia_toc, su_kien_gyro, su_kien_nhiet_do;
-  mpu.getEvent(&su_kien_gia_toc, &su_kien_gyro, &su_kien_nhiet_do);
+  float ax, ay, az;
+  if (!mpu_read_accel_filtered(ax, ay, az, 5)) return false;
 
-  const float ax = su_kien_gia_toc.acceleration.x;
-  const float ay = su_kien_gia_toc.acceleration.y;
-  const float az = su_kien_gia_toc.acceleration.z;
-
-  // Tính góc nghiêng bằng atan2f để tránh tràn số
   const float gia_toc_ngang = sqrtf(ax * ax + ay * ay);
   const float goc_thu = atan2f(gia_toc_ngang, fabsf(az)) * 180.0f / (float)M_PI;
   if (!isfinite(goc_thu)) return false;
 
-  // Trừ mốc hiệu chuẩn 0° — chỉ lấy phần nghiêng tương đối
-  goc_deg = fabsf(goc_thu - goc_hieu_chinh_zero);
+  float raw_diff = fabsf(goc_thu - goc_hieu_chinh_zero);
+  // Deadband chống rung: dưới 0.25° coi như 0.00°
+  if (raw_diff < 0.25f) raw_diff = 0.0f;
+
+  goc_deg = raw_diff;
   return true;
 }
 
@@ -403,6 +446,9 @@ void cap_nhat_toc_do(float goc_hien_tai, unsigned long hien_tai_ms) {
   }
 
   const unsigned long thoi_gian_da_qua = hien_tai_ms - moc_toc_do_ms;
+  float dt_phut = (hien_tai_ms - lan_doc_truoc_ms) / 60000.0f;
+  float delta_goc = fabsf(goc_hien_tai - goc_truoc_ms);
+
   if (thoi_gian_da_qua >= CUA_SO_TOC_DO_MS) {
     const float so_phut = thoi_gian_da_qua / 60000.0f;
     if (so_phut > 0.0f) {
@@ -410,13 +456,14 @@ void cap_nhat_toc_do(float goc_hien_tai, unsigned long hien_tai_ms) {
     }
     goc_moc_toc_do = goc_hien_tai;
     moc_toc_do_ms = hien_tai_ms;
-  } else {
-    // Phản hồi nhanh khi có chuyển động góc rõ rệt
-    float delta_goc = fabsf(goc_hien_tai - goc_truoc_ms);
-    if (delta_goc > 0.2f) {
-      float dt_phut = 1.0f / 60.0f;
+  } else if (dt_phut > 0.001f) {
+    if (delta_goc > 0.35f) {
       float toc_do_tuc_thoi = delta_goc / dt_phut;
-      toc_do_doi_goc = 0.7f * toc_do_doi_goc + 0.3f * toc_do_tuc_thoi;
+      toc_do_doi_goc = 0.6f * toc_do_doi_goc + 0.4f * toc_do_tuc_thoi;
+    } else {
+      // Đứng yên: Giảm dần tốc độ về 0 (Decay)
+      toc_do_doi_goc = toc_do_doi_goc * 0.4f;
+      if (toc_do_doi_goc < 0.1f) toc_do_doi_goc = 0.0f;
     }
   }
   goc_truoc_ms = goc_hien_tai;
@@ -515,34 +562,30 @@ void setup() {
   client_mqtt.setServer(MQTT_BROKER, MQTT_PORT);
   ket_noi_wifi_hoac_mo_trang_cai_dat();
   
-  // Khởi tạo I2C với chân SDA=4, SCL=5
+  // Khởi tạo I2C với chân SDA=4, SCL=5 (100kHz)
   Wire.begin(CHAN_SDA, CHAN_SCL);
-  Wire.setClock(400000);
-  delay(50);
-  
-  bool mpu_ok = false;
-  for (int retry = 0; retry < 5; ++retry) {
-    if (mpu.begin(0x68, &Wire)) {
-      mpu_ok = true;
-      break;
-    }
-    delay(100);
-  }
+  Wire.setClock(100000);
+  delay(100);
 
+  // Đánh thức và cấu hình MPU-6050 trực tiếp qua I2C (hỗ trợ cả chip clone WHO_AM_I=0x75)
+  mpu_write(REG_PWR_MGMT_1, 0x80); delay(100);
+  mpu_write(REG_PWR_MGMT_1, 0x00); delay(50);
+  mpu_write(REG_ACCEL_CFG, 0x00);
+  mpu_write(REG_CONFIG, 0x05); // DLPF 10Hz
+  delay(50);
+
+  float ax, ay, az;
+  bool mpu_ok = mpu_read_accel_filtered(ax, ay, az, 3);
   if (!mpu_ok) {
     Serial.println("[CẢNH BÁO] Không tìm thấy MPU-6050!");
   } else {
-    mpu.setAccelerometerRange(MPU6050_RANGE_2_G);
-    mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
-
-    // Tự động hiệu chuẩn góc 0° theo mặt phẳng đặt mô hình ban đầu
+    // Tự động hiệu chuẩn mốc 0° ban đầu (30 mẫu)
     float tong_goc = 0.0f;
     int so_mau = 0;
-    for (int i = 0; i < 15; i++) {
-      sensors_event_t a, g, t;
-      if (mpu.getEvent(&a, &g, &t)) {
-        float ha = sqrtf(a.acceleration.x * a.acceleration.x + a.acceleration.y * a.acceleration.y);
-        tong_goc += atan2f(ha, fabsf(a.acceleration.z)) * 180.0f / (float)M_PI;
+    for (int i = 0; i < 30; i++) {
+      if (mpu_read_accel(ax, ay, az)) {
+        float ha = sqrtf(ax * ax + ay * ay);
+        tong_goc += atan2f(ha, fabsf(az)) * 180.0f / (float)M_PI;
         so_mau++;
       }
       delay(15);

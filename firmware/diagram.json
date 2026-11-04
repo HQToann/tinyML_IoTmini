@@ -1,10 +1,9 @@
 {
   "version": 1,
-  "author": "Do an IoT TinyML giam sat sat lo",
+  "author": "Do an IoT TinyML giam sat an toan nha mo hinh",
   "editor": "wokwi",
   "parts": [
     { "type": "board-esp32-c3-devkitm-1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
-    { "type": "wokwi-potentiometer", "id": "soil", "top": -120, "left": 150, "attrs": {} },
     { "type": "wokwi-mpu6050", "id": "imu", "top": 130, "left": 190, "rotate": 90, "attrs": {} },
     { "type": "wokwi-buzzer", "id": "bz", "top": -110, "left": -130, "attrs": { "volume": "1.0" } },
     { "type": "wokwi-led", "id": "ledG", "top": 200, "left": -150, "attrs": { "color": "green" } },
@@ -18,27 +17,23 @@
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
     [ "esp:RX", "$serialMonitor:TX", "", [] ],
 
-    [ "soil:VCC", "esp:3V3.1", "red", [ "v0" ] ],
-    [ "soil:GND", "esp:GND.1", "black", [ "v0" ] ],
-    [ "soil:SIG", "esp:1", "green", [ "v0" ] ],
-
     [ "imu:VCC", "esp:3V3.1", "red", [ "v0" ] ],
     [ "imu:GND", "esp:GND.1", "black", [ "v0" ] ],
-    [ "imu:SDA", "esp:8", "blue", [ "v0" ] ],
-    [ "imu:SCL", "esp:9", "purple", [ "v0" ] ],
+    [ "imu:SDA", "esp:4", "blue", [ "v0" ] ],
+    [ "imu:SCL", "esp:5", "purple", [ "v0" ] ],
 
     [ "bz:1", "esp:GND.1", "black", [ "v0" ] ],
     [ "bz:2", "esp:3", "orange", [ "v0" ] ],
 
-    [ "esp:5", "rG:1", "green", [ "v0" ] ],
+    [ "esp:6", "rG:1", "green", [ "v0" ] ],
     [ "rG:2", "ledG:A", "green", [ "v0" ] ],
     [ "ledG:C", "esp:GND.1", "black", [ "v0" ] ],
 
-    [ "esp:6", "rY:1", "gold", [ "v0" ] ],
+    [ "esp:7", "rY:1", "gold", [ "v0" ] ],
     [ "rY:2", "ledY:A", "gold", [ "v0" ] ],
     [ "ledY:C", "esp:GND.1", "black", [ "v0" ] ],
 
-    [ "esp:7", "rR:1", "red", [ "v0" ] ],
+    [ "esp:8", "rR:1", "red", [ "v0" ] ],
     [ "rR:2", "ledR:A", "red", [ "v0" ] ],
     [ "ledR:C", "esp:GND.1", "black", [ "v0" ] ]
   ],

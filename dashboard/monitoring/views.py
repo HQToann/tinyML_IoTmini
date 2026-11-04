@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Avg, Max, Count
+from django.db.models import Avg, Max, Count, Q
 import json
 
 from monitoring.models import TelemetryRecord
@@ -48,26 +48,25 @@ def api_history(request):
     return JsonResponse(data)
 
 def api_stats(request):
-    """API trả về các chỉ số thống kê tổng quan."""
-    total = TelemetryRecord.objects.count()
-    normal_count = TelemetryRecord.objects.filter(risk_level=0).count()
-    attention_count = TelemetryRecord.objects.filter(risk_level=1).count()
-    danger_count = TelemetryRecord.objects.filter(risk_level=2).count()
-
-    aggregates = TelemetryRecord.objects.aggregate(
+    """API trả về các chỉ số thống kê tổng quan (tối ưu hóa 1 câu SQL duy nhất bằng Conditional Aggregation)."""
+    stats = TelemetryRecord.objects.aggregate(
+        total_packets=Count('id'),
+        normal_count=Count('id', filter=Q(risk_level=0)),
+        attention_count=Count('id', filter=Q(risk_level=1)),
+        danger_count=Count('id', filter=Q(risk_level=2)),
         avg_moisture=Avg('soil_moisture'),
         max_tilt=Max('tilt_angle'),
-        max_rate=Max('tilt_rate')
+        max_rate=Max('tilt_rate'),
     )
 
     return JsonResponse({
-        'total_packets': total,
-        'normal_count': normal_count,
-        'attention_count': attention_count,
-        'danger_count': danger_count,
-        'avg_moisture': round(aggregates['avg_moisture'] or 0.0, 1),
-        'max_tilt': round(aggregates['max_tilt'] or 0.0, 2),
-        'max_rate': round(aggregates['max_rate'] or 0.0, 3),
+        'total_packets': stats['total_packets'] or 0,
+        'normal_count': stats['normal_count'] or 0,
+        'attention_count': stats['attention_count'] or 0,
+        'danger_count': stats['danger_count'] or 0,
+        'avg_moisture': round(stats['avg_moisture'] or 0.0, 1),
+        'max_tilt': round(stats['max_tilt'] or 0.0, 2),
+        'max_rate': round(stats['max_rate'] or 0.0, 3),
     })
 
 @csrf_exempt
