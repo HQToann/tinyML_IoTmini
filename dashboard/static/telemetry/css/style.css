@@ -1,0 +1,866 @@
+/* ==========================================================================
+   RIVERSENSE DASHBOARD — THIẾT KẾ 16:9 GỌN GÀNG TRÊN 1 MÀN HÌNH (NO SCROLL)
+   Phông chữ: Be Vietnam Pro + JetBrains Mono
+   Đặc điểm: Tối giản số liệu, không icon/emoji, bố cục vừa khít viewport 16:9
+   Không có khoảng trống thừa, phân bố nội dung đều đặn và cân đối
+   ========================================================================== */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden; /* Cố định 1 màn hình 16:9 không cuộn trang */
+    font-size: 13.5px;
+    font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+    background-color: #f8fafc;
+    color: #1e293b;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── CÁC MÀU CHỈ SỐ ───────────────────────────────────────────────────────── */
+.text-tilt     { color: #ea580c !important; }
+.text-moisture { color: #0284c7 !important; }
+.text-rate     { color: #475569 !important; }
+.text-green    { color: #16a34a !important; }
+.text-amber    { color: #d97706 !important; }
+.text-red      { color: #dc2626 !important; }
+
+/* ── BĂNG BÁO ĐỘNG ĐỎ ────────────────────────────────────────────────────── */
+.danger-banner {
+    background: #dc2626;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.8px;
+    text-align: center;
+    padding: 6px 16px;
+    flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   1. THANH TIÊU ĐỀ TRÊN CÙNG (GỌN GÀNG: 44px)
+══════════════════════════════════════════════════════════════════════════ */
+.app-topbar {
+    height: 44px;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.brand-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brand-code {
+    background: #0f172a;
+    color: #ffffff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.brand-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.brand-desc {
+    font-size: 11px;
+    color: #64748b;
+    border-left: 1px solid #cbd5e1;
+    padding-left: 10px;
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11.5px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #475569;
+}
+
+.dot-led {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #94a3b8;
+}
+
+.status-item[data-state="online"] .dot-led {
+    background: #16a34a;
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.25);
+}
+
+.node-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #334155;
+    background: #f1f5f9;
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+}
+
+.topbar-sep {
+    color: #cbd5e1;
+}
+
+.btn-topbar-sound {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: #334155;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.btn-topbar-sound:hover {
+    background: #f1f5f9;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   2. KHUNG CHÍNH (FLEX 1 - VỪA KHÍT MÀN HÌNH)
+══════════════════════════════════════════════════════════════════════════ */
+.dashboard-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 18px;
+    gap: 12px;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   3. HÀNG 4 CHỈ SỐ CỐT LÕI (TOP METRICS ROW: cao tầm 105px)
+══════════════════════════════════════════════════════════════════════════ */
+.top-metrics-row {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr 1fr;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.metric-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 105px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.box-ai {
+    border-left: 3px solid #0f172a;
+}
+
+.box-tilt {
+    border-left: 3px solid #ea580c;
+}
+
+.box-moisture {
+    border-left: 3px solid #0284c7;
+}
+
+.box-rate {
+    border-left: 3px solid #64748b;
+}
+
+.box-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.box-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+}
+
+.box-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    color: #16a34a;
+    background: #f0fdf4;
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid #bbf7d0;
+}
+
+.sensor-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #94a3b8;
+}
+
+.box-main {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 4px 0;
+}
+
+.ai-main {
+    align-items: center;
+}
+
+.ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 13.5px;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+
+.badge-normal {
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
+
+.badge-attention {
+    background: #fffbeb;
+    color: #d97706;
+    border: 1px solid #fde68a;
+}
+
+.badge-danger {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.badge-uncalibrated {
+    background: #fefce8;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.badge-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.ai-conf {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.conf-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1;
+}
+
+.conf-sub {
+    font-size: 9.5px;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+/* Các số to cho 3 cảm biến */
+.value-huge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 30px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -1px;
+}
+
+.val-unit {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-left: 2px;
+    font-weight: 400;
+}
+
+.box-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.mini-bar-bg {
+    width: 100%;
+    height: 3px;
+    background: #f1f5f9;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.mini-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.fill-tilt     { background: #ea580c; }
+.fill-moisture { background: #0284c7; }
+.fill-rate     { background: #64748b; }
+
+.state-hint {
+    font-size: 11px;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Nút Cân bằng 0° tích hợp */
+.tilt-btns {
+    display: flex;
+    gap: 4px;
+}
+
+.btn-calib-now {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    background: #0f172a;
+    color: #ffffff;
+    border: none;
+    border-radius: 3px;
+    padding: 2px 7px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.btn-calib-now:hover { opacity: 0.85; }
+
+.btn-reset-now {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 10px;
+    background: transparent;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    padding: 2px 5px;
+    cursor: pointer;
+}
+
+.calib-tag-small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 1px 5px;
+    border-radius: 3px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   4. KHU VỰC CHÍNH 2 CỘT CÂN XỨNG (MAIN VIEWPORT GRID: Co giãn vừa khít 16:9)
+══════════════════════════════════════════════════════════════════════════ */
+.main-viewport-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    min-height: 0;
+}
+
+/* ── CỘT TRÁI: 2 BIỂU ĐỒ ─────────────────────────────────────────────── */
+.charts-column {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+}
+
+.card-chart {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.chart-header-compact {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    flex-shrink: 0;
+}
+
+.chart-heading {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.chart-compact-legend {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 10.5px;
+    color: #64748b;
+}
+
+.dot-legend {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 3px;
+}
+
+.dot-blue   { background: #0284c7; }
+.dot-orange { background: #ea580c; }
+.dot-green  { background: #16a34a; }
+.dot-amber  { background: #d97706; }
+.dot-red    { background: #dc2626; }
+
+.canvas-holder {
+    flex: 1;
+    position: relative;
+    width: 100%;
+    min-height: 0;
+}
+
+.canvas-holder canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Dải Softmax thanh lịch dưới biểu đồ 2 */
+.compact-softmax-bar {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid #f1f5f9;
+    flex-shrink: 0;
+}
+
+.softmax-stack {
+    height: 4px;
+    background: #f1f5f9;
+    border-radius: 2px;
+    display: flex;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.st-seg {
+    height: 100%;
+    transition: width 0.3s;
+}
+
+.st-normal    { background: #16a34a; }
+.st-attention { background: #d97706; }
+.st-danger    { background: #dc2626; }
+
+.softmax-labels-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10.5px;
+    color: #64748b;
+}
+
+.softmax-labels-row strong {
+    font-family: 'JetBrains Mono', monospace;
+    color: #0f172a;
+}
+
+/* ── CỘT PHẢI: BẢNG DỮ LIỆU & ĐIỀU KHIỂN (CÂN ĐỐI, ĐẦY ĐẶN) ────────── */
+.data-column {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+}
+
+/* Bảng dữ liệu: chiếm 55% chiều cao cột phải */
+.card-table-block {
+    flex: 1.2;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.table-top-bar {
+    padding: 8px 14px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.table-title-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.table-heading {
+    font-size: 12px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.count-tag {
+    font-size: 11px;
+    color: #64748b;
+}
+
+.count-tag strong {
+    font-family: 'JetBrains Mono', monospace;
+    color: #0f172a;
+}
+
+.btn-clear-sm {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 11px;
+    color: #dc2626;
+    background: transparent;
+    border: 1px solid #fecaca;
+    padding: 2px 7px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.btn-clear-sm:hover {
+    background: #fef2f2;
+}
+
+.table-viewport {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: auto;
+    min-height: 0;
+}
+
+.simple-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11.5px;
+    text-align: left;
+}
+
+.simple-table thead {
+    position: sticky;
+    top: 0;
+    background: #f8fafc;
+    z-index: 1;
+}
+
+.simple-table th {
+    padding: 7px 10px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #64748b;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.simple-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #f1f5f9;
+    font-family: 'JetBrains Mono', monospace;
+    color: #334155;
+    white-space: nowrap;
+}
+
+.simple-table tbody tr:hover td {
+    background: #f8fafc;
+}
+
+.cell-empty {
+    text-align: center;
+    color: #94a3b8;
+    padding: 24px 0 !important;
+    font-family: 'Be Vietnam Pro', sans-serif !important;
+    font-style: italic;
+}
+
+.tbl-badge {
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 10.5px;
+    font-weight: 500;
+}
+
+.tbl-badge-0 { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.tbl-badge-1 { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+.tbl-badge-2 { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.tbl-badge-uncalibrated { background: #fefce8; color: #b45309; border: 1px solid #fde68a; }
+
+/* ── Khối điều khiển & kiểm thử: Đầy đặn, không có khoảng trắng thừa ── */
+.card-control-compact {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.ctrl-sub-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ctrl-sub-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ctrl-sub-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #475569;
+}
+
+.ctrl-sub-note {
+    font-size: 10px;
+    color: #94a3b8;
+}
+
+/* Hàng 1: Nút kịch bản kiểm thử */
+.sim-btn-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+}
+
+.btn-sim-quick {
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+    padding: 8px 10px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #ffffff;
+    transition: transform 0.1s, border-color 0.15s, box-shadow 0.15s;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    text-align: center;
+    gap: 2px;
+}
+
+.btn-sim-quick:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.btn-sim-quick:active {
+    transform: scale(0.97);
+}
+
+.btn-sim-quick strong {
+    font-size: 11.5px;
+    line-height: 1.2;
+}
+
+.btn-sim-quick span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    opacity: 0.85;
+}
+
+.sim-q0 { border-color: #bbf7d0; color: #16a34a; background: #f0fdf4; }
+.sim-q1 { border-color: #fde68a; color: #d97706; background: #fffbeb; }
+.sim-q2 { border-color: #fecaca; color: #dc2626; background: #fef2f2; }
+
+/* Hàng 2: Hiệu chuẩn mốc 0° thực địa */
+.calib-hint-inline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: #64748b;
+}
+
+.calib-full-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-calib-action-main {
+    flex: 1;
+    background: #0f172a;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    text-align: center;
+}
+
+.btn-calib-action-main:hover { opacity: 0.88; }
+
+.btn-calib-action-main span {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 11.5px;
+    font-weight: 600;
+}
+
+.btn-reset-action-main {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 11px;
+    background: transparent;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 7px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-reset-action-main:hover {
+    background: #f1f5f9;
+}
+
+.calib-status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10.5px;
+    color: #16a34a;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    padding: 5px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.dot-green-tiny {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #16a34a;
+    flex-shrink: 0;
+}
+
+/* Hàng 3: Thống kê hoạt động quan trắc */
+.stats-mini-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+
+.stat-bubble {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 6px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 2px;
+}
+
+.sb-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.1;
+}
+
+.sb-lbl {
+    font-size: 9.5px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   5. TOAST THÔNG BÁO
+══════════════════════════════════════════════════════════════════════════ */
+.toast-container {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 9999;
+}
+
+.toast-msg {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: #0f172a;
+    color: #ffffff;
+    border-radius: 4px;
+    font-size: 11.5px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.toast-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #94a3b8;
+}
+
+.toast-success .toast-indicator { background: #22c55e; }
+.toast-warning .toast-indicator { background: #f59e0b; }
+.toast-error   .toast-indicator { background: #ef4444; }
+.toast-info    .toast-indicator { background: #3b82f6; }

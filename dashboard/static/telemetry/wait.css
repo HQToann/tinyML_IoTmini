@@ -1,0 +1,136 @@
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #dbeafe;
+    }
+
+    /* Floating Clouds Animation across full width */
+    @keyframes cloudScroll1 {
+      0% { transform: translateX(-240px); }
+      100% { transform: translateX(110vw); }
+    }
+    @keyframes cloudScroll2 {
+      0% { transform: translateX(-350px); }
+      100% { transform: translateX(110vw); }
+    }
+    @keyframes cloudScroll3 {
+      0% { transform: translateX(-180px); }
+      100% { transform: translateX(115vw); }
+    }
+    .cloud-layer-1 { animation: cloudScroll1 68s linear infinite; }
+    .cloud-layer-2 { animation: cloudScroll2 48s linear infinite 14s; }
+    .cloud-layer-3 { animation: cloudScroll3 80s linear infinite 28s; }
+
+    /* Birds flying across sky */
+    @keyframes birdFlight {
+      0% { transform: translate(-80px, 30px) scale(0.85); }
+      50% { transform: translate(52vw, -10px) scale(1); }
+      100% { transform: translate(105vw, 15px) scale(0.9); }
+    }
+    .bird-flock { animation: birdFlight 36s linear infinite; }
+
+    /* Swaying Trees */
+    @keyframes treeSwayGentle {
+      0%, 100% { transform: rotate(0deg); }
+      35% { transform: rotate(2.4deg) skewX(1deg); }
+      70% { transform: rotate(-2deg) skewX(-1deg); }
+    }
+    @keyframes treeSwayPine {
+      0%, 100% { transform: rotate(0deg); }
+      40% { transform: rotate(-2.8deg); }
+      75% { transform: rotate(2.2deg); }
+    }
+    .sway-tree-big {
+      transform-origin: bottom center;
+      animation: treeSwayGentle 6.5s ease-in-out infinite;
+    }
+    .sway-tree-pine {
+      transform-origin: bottom center;
+      animation: treeSwayPine 5.2s ease-in-out infinite 0.7s;
+    }
+    .sway-bush {
+      transform-origin: bottom center;
+      animation: treeSwayGentle 4.5s ease-in-out infinite 1.2s;
+    }
+
+    /* River Wave Ripple Animations */
+    @keyframes riverWaveA {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    @keyframes riverWaveB {
+      0% { transform: translateX(-50%); }
+      100% { transform: translateX(0); }
+    }
+    .wave-flow-1 {
+      animation: riverWaveA 14s linear infinite;
+    }
+    .wave-flow-2 {
+      animation: riverWaveB 18s linear infinite;
+    }
+    .wave-flow-3 {
+      animation: riverWaveA 22s linear infinite;
+    }
+
+    /* Stilt House Floating / Swaying in Breeze */
+    @keyframes houseResting {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-3px) rotate(0.3deg); }
+    }
+    .house-drift {
+      transform-origin: center bottom;
+      animation: houseResting 7s ease-in-out infinite;
+    }
+
+    /* Chimney Smoke drift */
+    @keyframes smokeDrifting {
+      0% { transform: translateY(0) scale(0.7); opacity: 0.85; }
+      50% { transform: translateY(-24px) translateX(9px) scale(1.2); opacity: 0.45; }
+      100% { transform: translateY(-50px) translateX(22px) scale(1.7); opacity: 0; }
+    }
+    .smoke-puff-1 { animation: smokeDrifting 3.5s ease-out infinite; }
+    .smoke-puff-2 { animation: smokeDrifting 3.5s ease-out infinite 1.75s; }
+
+    /* Sensor Telemetry Pulse Ring */
+    @keyframes beaconWaves {
+      0% { transform: scale(0.5); opacity: 1; }
+      100% { transform: scale(3); opacity: 0; }
+    }
+    .sensor-ring-1 {
+      animation: beaconWaves 2.2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+    }
+    .sensor-ring-2 {
+      animation: beaconWaves 2.2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite 1.1s;
+    }
+
+    /* Loading Progress Bar */
+    @keyframes loadPulseProgress {
+      0% { width: 8%; }
+      30% { width: 42%; }
+      60% { width: 72%; }
+      85% { width: 91%; }
+      100% { width: 98%; }
+    }
+    .progress-flow {
+      animation: loadPulseProgress 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+    }
+
+    /* Dots Bouncing */
+    @keyframes bounceHop {
+      0%, 80%, 100% { transform: scale(0.65); opacity: 0.35; }
+      40% { transform: scale(1.25); opacity: 1; }
+    }
+    .hop-1 { animation: bounceHop 1.4s infinite ease-in-out; }
+    .hop-2 { animation: bounceHop 1.4s infinite ease-in-out 0.2s; }
+    .hop-3 { animation: bounceHop 1.4s infinite ease-in-out 0.4s; }
+
+    /* Frosted glass backdrop for UI elements */
+    .glass-pill {
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 8px 24px -6px rgba(3, 105, 161, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
+    }

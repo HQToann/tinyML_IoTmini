@@ -1,0 +1,10 @@
+{
+  "additionalFiles": "",
+  "builtInLibrariesFolders": "C:\\Users\\thanh\\AppData\\Local\\Arduino15\\libraries",
+  "compiler.optimization_flags": "-Os",
+  "customBuildProperties": "",
+  "fqbn": "esp32:esp32:esp32c3:UploadSpeed=921600,CDCOnBoot=default,CPUFreq=160,FlashFreq=80,FlashMode=qio,FlashSize=4M,PartitionScheme=default,DebugLevel=none,EraseFlash=none,JTAGAdapter=default,ZigbeeMode=default",
+  "hardwareFolders": "C:\\Users\\thanh\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.3.12,C:\\Users\\thanh\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.3.12",
+  "otherLibrariesFolders": "c:\\Users\\thanh\\OneDrive\\Documents\\Arduino\\libraries",
+  "sketchLocation": "D:\\ky_3_2025-2026\\IOT\\tinyML_IoTmini\\firmware\\sketch"
+}

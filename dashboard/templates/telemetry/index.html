@@ -1,0 +1,351 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Màn hình chờ kết nối - RiverSense TiltGuard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="{% static 'telemetry/wait.css' %}">
+</head>
+
+<body class="relative w-screen h-screen overflow-hidden select-none bg-gradient-to-b from-[#bde2ff] via-[#d5edff] to-[#e6f4fe]">
+<!-- ========================================================================= -->
+<!-- FULL-BLEED IMMERSIVE LANDSCAPE ILLUSTRATION (100% Width & Height)         -->
+<!-- ========================================================================= -->
+<div class="absolute inset-0 w-full h-full pointer-events-none z-0">
+<!-- Sky Layer: Sun glow & subtle sky gradient (Sky occupies ~42%) -->
+<div class="absolute top-0 inset-x-0 h-[48%] bg-gradient-to-b from-[#90cfff]/35 via-[#ccebff]/30 to-transparent pointer-events-none"></div>
+<!-- Warm Sun in upper right sky -->
+<div class="absolute top-6 right-24 w-72 h-72 rounded-full bg-gradient-to-br from-amber-100/70 via-amber-200/25 to-transparent blur-3xl pointer-events-none"></div>
+<div class="absolute top-14 right-36 w-20 h-20 rounded-full bg-gradient-to-br from-white/90 to-amber-200/50 shadow-[0_0_40px_rgba(253,224,71,0.45)] pointer-events-none"></div>
+<!-- Floating Clouds Across Full Screen -->
+<div class="cloud-layer-1 absolute top-12 -left-48 opacity-80">
+<svg fill="white" height="65" viewbox="0 0 140 48" width="200">
+<path d="M 20,40 Q 10,40 10,30 Q 10,18 24,18 Q 30,6 48,10 Q 64,-2 82,8 Q 98,4 104,18 Q 118,18 122,28 Q 126,40 110,40 Z"></path>
+</svg>
+</div>
+<div class="cloud-layer-2 absolute top-24 -left-72 opacity-65 scale-110">
+<svg fill="white" height="75" viewbox="0 0 140 48" width="230">
+<path d="M 20,40 Q 10,40 10,30 Q 10,18 24,18 Q 30,6 48,10 Q 64,-2 82,8 Q 98,4 104,18 Q 118,18 122,28 Q 126,40 110,40 Z"></path>
+</svg>
+</div>
+<div class="cloud-layer-3 absolute top-6 -left-32 opacity-50 scale-75">
+<svg fill="white" height="50" viewbox="0 0 140 48" width="160">
+<path d="M 20,40 Q 10,40 10,30 Q 10,18 24,18 Q 30,6 48,10 Q 64,-2 82,8 Q 98,4 104,18 Q 118,18 122,28 Q 126,40 110,40 Z"></path>
+</svg>
+</div>
+<!-- Flock of birds in upper sky -->
+<div class="bird-flock absolute top-14 left-0">
+<svg fill="none" height="34" opacity="0.45" stroke="#0284c7" stroke-linecap="round" stroke-width="2" viewbox="0 0 90 35" width="90">
+<path d="M 4 14 Q 12 5 20 12 Q 28 5 36 14"></path>
+<path d="M 38 9 Q 44 2 50 8 Q 56 2 62 9"></path>
+<path d="M 66 18 Q 71 12 76 17 Q 81 12 86 18"></path>
+</svg>
+</div>
+<!-- SVG VECTOR LANDSCAPE: Full-width Mountains, Rolling Hills, Riverbank, Stilt House, Embankment Piles -->
+<svg class="absolute inset-0 w-full h-full" preserveaspectratio="xMidYMax slice" viewbox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<lineargradient id="farHillGrad" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#bae6fd" stop-opacity="0.65"></stop>
+<stop offset="60%" stop-color="#a7f3d0" stop-opacity="0.75"></stop>
+<stop offset="100%" stop-color="#6ee7b7" stop-opacity="0.9"></stop>
+</lineargradient>
+<lineargradient id="midHillGrad" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#86efac"></stop>
+<stop offset="45%" stop-color="#4ade80"></stop>
+<stop offset="100%" stop-color="#16a34a"></stop>
+</lineargradient>
+<lineargradient id="foreHillGrad" x1="0" x2="1" y1="0" y2="1">
+<stop offset="0%" stop-color="#34d399"></stop>
+<stop offset="40%" stop-color="#10b981"></stop>
+<stop offset="100%" stop-color="#059669"></stop>
+</lineargradient>
+<lineargradient id="rightBankGrad" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#6ee7b7"></stop>
+<stop offset="50%" stop-color="#34d399"></stop>
+<stop offset="100%" stop-color="#059669"></stop>
+</lineargradient>
+<lineargradient id="earthSlopeGrad" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#a7f3d0"></stop>
+<stop offset="25%" stop-color="#94a3b8"></stop>
+<stop offset="70%" stop-color="#64748b"></stop>
+<stop offset="100%" stop-color="#334155"></stop>
+</lineargradient>
+<lineargradient id="houseWallGrad" x1="0" x2="1" y1="0" y2="0">
+<stop offset="0%" stop-color="#ffffff"></stop>
+<stop offset="65%" stop-color="#f8fafc"></stop>
+<stop offset="100%" stop-color="#e2e8f0"></stop>
+</lineargradient>
+<lineargradient id="roofGrad" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#38bdf8"></stop>
+<stop offset="40%" stop-color="#0284c7"></stop>
+<stop offset="100%" stop-color="#0369a1"></stop>
+</lineargradient>
+<lineargradient id="treeLush1" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#6ee7b7"></stop>
+<stop offset="60%" stop-color="#10b981"></stop>
+<stop offset="100%" stop-color="#047857"></stop>
+</lineargradient>
+<lineargradient id="treeLush2" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#a7f3d0"></stop>
+<stop offset="100%" stop-color="#059669"></stop>
+</lineargradient>
+<filter height="150%" id="sensorGlow" width="150%" x="-25%" y="-25%">
+<fegaussianblur result="blur" stddeviation="5"></fegaussianblur>
+<fecomposite in="SourceGraphic" in2="blur" operator="over"></fecomposite>
+</filter>
+</defs>
+<!-- 1. DISTANT MOUNTAINS & ROLLING HILLS (Background Landscape) -->
+<path d="M -50 490 Q 280 410 650 450 T 1320 430 T 1970 410 L 1970 760 L -50 760 Z" fill="url(#farHillGrad)"></path>
+<path d="M 850 460 Q 1220 390 1620 430 T 1980 470 L 1980 750 L 850 750 Z" fill="#93c5fd" opacity="0.3"></path>
+<!-- 2. MID-GROUND GREEN HILLS -->
+<path d="M -50 560 Q 320 460 840 520 T 1620 540 L 1970 580 L 1970 820 L -50 820 Z" fill="url(#midHillGrad)"></path>
+<!-- Distant Ridge Trees -->
+<g opacity="0.75">
+<circle cx="260" cy="510" fill="#10b981" r="28"></circle>
+<circle cx="310" cy="505" fill="#059669" r="34"></circle>
+<circle cx="360" cy="515" fill="#34d399" r="24"></circle>
+<circle cx="410" cy="522" fill="#047857" r="20"></circle>
+<circle cx="1480" cy="520" fill="#10b981" r="26"></circle>
+<circle cx="1520" cy="514" fill="#059669" r="32"></circle>
+<circle cx="1570" cy="525" fill="#34d399" r="26"></circle>
+</g>
+<!-- 3. FOREGROUND RIVERBANK & CONCRETE EMBANKMENT (Bờ Kè Bên Phải - Nơi Đặt Ngôi Nhà Cực Nổi Bật) -->
+<!-- Left Riverbank (Thoai thoải với cây cối tự nhiên) -->
+<path d="M -50 670 Q 220 635 480 670 Q 560 685 600 750 L 600 860 L -50 860 Z" fill="url(#earthSlopeGrad)"></path>
+<path d="M -50 655 Q 240 620 500 655 Q 560 670 590 730 L 590 820 L -50 820 Z" fill="url(#foreHillGrad)"></path>
+<!-- Right Riverbank with Concrete Embankment & House Foundation (Bờ kè kiên cố & Trạm quan trắc) -->
+<!-- Earth Slope under the house -->
+<path d="M 1240 750 Q 1330 660 1520 630 Q 1740 610 1970 630 L 1970 880 L 1240 880 Z" fill="url(#earthSlopeGrad)"></path>
+<!-- Lush grass on the right bank -->
+<path d="M 1290 735 Q 1360 645 1540 620 Q 1750 600 1970 620 L 1970 820 L 1290 820 Z" fill="url(#rightBankGrad)"></path>
+<!-- Heavy Anti-Erosion Concrete Retaining Piles (Hệ thống cọc kè bê tông chịu tải sạt lở) -->
+<rect fill="#94a3b8" height="170" rx="4" stroke="#64748b" stroke-width="1.5" width="22" x="1270" y="685"></rect>
+<rect fill="#cbd5e1" height="175" rx="4" stroke="#94a3b8" stroke-width="1.5" width="22" x="1310" y="675"></rect>
+<rect fill="#94a3b8" height="180" rx="4" stroke="#64748b" stroke-width="1.5" width="22" x="1350" y="665"></rect>
+<rect fill="#cbd5e1" height="185" rx="4" stroke="#94a3b8" stroke-width="1.5" width="22" x="1390" y="655"></rect>
+<rect fill="#94a3b8" height="190" rx="4" stroke="#64748b" stroke-width="1.5" width="22" x="1430" y="650"></rect>
+<!-- Cap Beam across retaining wall -->
+<polygon fill="#475569" opacity="0.95" points="1260,695 1460,650 1460,668 1260,713"></polygon>
+<!-- 4. RICH LUSH TREES & ORCHARD ON LEFT & RIGHT BANKS (Cây cối sinh động) -->
+<!-- Tree Left 1: Big Pine Tree -->
+<g class="sway-tree-pine" style="transform-origin: 160px 650px;">
+<rect fill="#78350f" height="110" rx="3" width="12" x="154" y="545"></rect>
+<polygon fill="url(#treeLush2)" points="160,420 110,500 210,500"></polygon>
+<polygon fill="url(#treeLush1)" points="160,465 105,545 215,545"></polygon>
+<polygon fill="#047857" points="160,510 95,595 225,595"></polygon>
+</g>
+<!-- Tree Left 2: Big Fruited Tree with Apples & Flowers -->
+<g class="sway-tree-big" style="transform-origin: 320px 655px;">
+<path d="M 310 660 Q 314 580 318 520 L 332 520 Q 328 580 334 660 Z" fill="#92400e"></path>
+<circle cx="325" cy="460" fill="url(#treeLush1)" opacity="0.95" r="76"></circle>
+<circle cx="280" cy="475" fill="url(#treeLush2)" r="52"></circle>
+<circle cx="370" cy="475" fill="url(#treeLush1)" r="56"></circle>
+<circle cx="325" cy="415" fill="#a7f3d0" opacity="0.8" r="48"></circle>
+<!-- Fruits / Flowers -->
+<circle cx="288" cy="455" fill="#f43f5e" r="5.5"></circle>
+<circle cx="350" cy="442" fill="#fbbf24" r="6.5"></circle>
+<circle cx="316" cy="495" fill="#f43f5e" r="6"></circle>
+<circle cx="365" cy="488" fill="#fbbf24" r="5"></circle>
+<circle cx="275" cy="498" fill="#fbbf24" r="5.5"></circle>
+</g>
+<!-- Bushes on Left Bank -->
+<g class="sway-bush" style="transform-origin: 440px 665px;">
+<circle cx="435" cy="655" fill="#10b981" r="28"></circle>
+<circle cx="465" cy="660" fill="#34d399" r="22"></circle>
+<circle cx="445" cy="648" fill="#fef08a" r="4.5"></circle>
+</g>
+<!-- Trees on Right Bank behind & beside the House -->
+<g class="sway-tree-big" style="transform-origin: 1780px 620px;">
+<path d="M 1772 625 Q 1776 560 1780 500 L 1792 500 Q 1788 560 1792 625 Z" fill="#92400e"></path>
+<circle cx="1785" cy="450" fill="url(#treeLush1)" opacity="0.95" r="70"></circle>
+<circle cx="1740" cy="465" fill="url(#treeLush2)" r="48"></circle>
+<circle cx="1825" cy="460" fill="url(#treeLush1)" r="52"></circle>
+<circle cx="1785" cy="410" fill="#a7f3d0" opacity="0.8" r="44"></circle>
+<circle cx="1750" cy="445" fill="#f43f5e" r="5.5"></circle>
+<circle cx="1810" cy="435" fill="#fbbf24" r="6"></circle>
+<circle cx="1775" cy="485" fill="#f43f5e" r="5.5"></circle>
+</g>
+<!-- 5. THE CHARMING RIVERSIDE STILT HOUSE (GÓC 1/3 PHẢI - HOÀN TOÀN KHÔNG BỊ CHỮ CHE KHUẤT) -->
+<!-- Stilt House + Platform + Deck Balcony + Smoke Chimney + IoT Tilt Sensor -->
+<g class="house-drift" style="transform-origin: 1530px 670px;">
+<!-- Deep Foundation Stilt Piles into Soil & Water -->
+<rect fill="#475569" height="130" rx="4" stroke="#1e293b" stroke-width="2.5" width="16" x="1435" y="570"></rect>
+<rect fill="#475569" height="150" rx="4" stroke="#1e293b" stroke-width="2.5" width="16" x="1545" y="570"></rect>
+<rect fill="#334155" height="170" rx="4" stroke="#1e293b" stroke-width="2.5" width="16" x="1605" y="570"></rect>
+<!-- Diagonal cross braces for structural stability -->
+<line stroke="#64748b" stroke-linecap="round" stroke-width="4.5" x1="1440" x2="1555" y1="590" y2="675"></line>
+<line stroke="#64748b" stroke-linecap="round" stroke-width="4.5" x1="1555" x2="1440" y1="590" y2="675"></line>
+<!-- Stilt Wooden Deck (Ban công hướng ra sông) -->
+<rect fill="#b45309" height="18" rx="4" stroke="#78350f" stroke-width="2" width="245" x="1405" y="555"></rect>
+<!-- Balcony Railing -->
+<line stroke="#d97706" stroke-linecap="round" stroke-width="3" x1="1415" x2="1415" y1="555" y2="515"></line>
+<line stroke="#d97706" stroke-linecap="round" stroke-width="3" x1="1440" x2="1440" y1="555" y2="515"></line>
+<line stroke="#d97706" stroke-linecap="round" stroke-width="3" x1="1465" x2="1465" y1="555" y2="515"></line>
+<line stroke="#d97706" stroke-linecap="round" stroke-width="3" x1="1490" x2="1490" y1="555" y2="515"></line>
+<line stroke="#b45309" stroke-linecap="round" stroke-width="4" x1="1410" x2="1495" y1="517" y2="517"></line>
+<!-- Potted plant on balcony deck -->
+<rect fill="#ea580c" height="16" rx="3" width="14" x="1430" y="539"></rect>
+<circle cx="1437" cy="530" fill="#22c55e" r="9"></circle>
+<!-- House Main Walls -->
+<rect fill="url(#houseWallGrad)" height="195" rx="7" stroke="#0284c7" stroke-width="3.5" width="145" x="1485" y="365"></rect>
+<!-- Cozy Chimney on roof -->
+<rect fill="#e2e8f0" height="52" rx="3" stroke="#0284c7" stroke-width="2.5" width="22" x="1588" y="275"></rect>
+<!-- Drifting smoke puffs -->
+<circle class="smoke-puff-1" cx="1599" cy="262" fill="#bae6fd" r="7.5"></circle>
+<circle class="smoke-puff-2" cx="1602" cy="248" fill="#93c5fd" r="9.5"></circle>
+<!-- Traditional Gable Roof (Mái ngói xanh ngọc ven sông) -->
+<polygon fill="url(#roofGrad)" points="1460,375 1558,255 1655,375" stroke="#0369a1" stroke-linejoin="round" stroke-width="4.5"></polygon>
+<!-- Attic round window -->
+<circle cx="1558" cy="320" fill="#fef08a" r="15" stroke="#0284c7" stroke-width="2.5"></circle>
+<line stroke="#0284c7" stroke-width="2" x1="1558" x2="1558" y1="305" y2="335"></line>
+<line stroke="#0284c7" stroke-width="2" x1="1543" x2="1573" y1="320" y2="320"></line>
+<!-- Main Window with warm light -->
+<rect fill="#fef08a" height="55" rx="5" stroke="#0284c7" stroke-width="2.5" width="46" x="1505" y="400"></rect>
+<line stroke="#0284c7" stroke-width="2" x1="1528" x2="1528" y1="400" y2="455"></line>
+<line stroke="#0284c7" stroke-width="2" x1="1505" x2="1551" y1="427" y2="427"></line>
+<!-- Front Door -->
+<rect fill="#38bdf8" height="110" rx="4" stroke="#0284c7" stroke-width="2.5" width="40" x="1568" y="445"></rect>
+<circle cx="1576" cy="505" fill="#0f172a" r="3.5"></circle>
+<!-- IoT TiltGuard Smart Sensor Mounted On House Wall Facing River -->
+<g transform="translate(1485, 430)">
+<circle class="sensor-ring-1" cx="0" cy="0" fill="none" r="30" stroke="#0284c7" stroke-width="2.5"></circle>
+<circle class="sensor-ring-2" cx="0" cy="0" fill="none" r="30" stroke="#38bdf8" stroke-width="2"></circle>
+<!-- Sensor Node Housing -->
+<rect fill="#0284c7" height="22" rx="4" stroke="#ffffff" stroke-width="2" width="22" x="-11" y="-11"></rect>
+<circle cx="0" cy="0" fill="#34d399" r="3.5"></circle>
+<!-- Telemetry antenna -->
+<line stroke="#0284c7" stroke-linecap="round" stroke-width="2.5" x1="0" x2="0" y1="-11" y2="-22"></line>
+<circle cx="0" cy="-23" fill="#38bdf8" r="2.5"></circle>
+</g>
+</g>
+<!-- Wireless Telemetry Data Waves Heading toward Cloud -->
+<g opacity="0.8" stroke="#0284c7" stroke-linecap="round" stroke-width="2.5">
+<line x1="1420" x2="1420" y1="400" y2="416"></line>
+<line x1="1412" x2="1428" y1="408" y2="408"></line>
+<line x1="1340" x2="1340" y1="340" y2="356"></line>
+<line x1="1332" x2="1348" y1="348" y2="348"></line>
+</g>
+</svg>
+<!-- ========================================================================= -->
+<!-- 6. FLOWING BLUE RIVER AT BOTTOM 32% OF SCREEN (Dòng sông xanh biếc)       -->
+<!-- ========================================================================= -->
+<div class="absolute bottom-0 inset-x-0 h-[32vh] min-h-[240px] pointer-events-none overflow-hidden">
+<!-- Water Background Base Gradient -->
+<div class="absolute inset-0 bg-gradient-to-b from-[#38bdf8]/90 via-[#0284c7] to-[#0369a1]"></div>
+<!-- Wave Layer 1 (Upper Background Wave) -->
+<div class="absolute -top-8 left-0 w-[200vw] h-24 opacity-65 wave-flow-1">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 1200 120">
+<path d="M0,60 C150,90 350,30 500,60 C650,90 850,30 1000,60 C1150,90 1350,30 1500,60 L1500,120 L0,120 Z" fill="#7dd3fc"></path>
+</svg>
+</div>
+<!-- Wave Layer 2 (Middle Ripple Crest Wave) -->
+<div class="absolute -top-3 left-0 w-[200vw] h-24 opacity-85 wave-flow-2">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 1200 120">
+<path d="M0,45 C200,10 400,80 600,45 C800,10 1000,80 1200,45 C1400,10 1600,80 1800,45 L1800,120 L0,120 Z" fill="#0284c7"></path>
+<path d="M0,47 C200,12 400,82 600,47 C800,12 1000,82 1200,47" fill="none" opacity="0.8" stroke="#f0f9ff" stroke-width="2.5"></path>
+</svg>
+</div>
+<!-- Wave Layer 3 (Foreground Deep Wave) -->
+<div class="absolute top-5 left-0 w-[200vw] h-28 wave-flow-3">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 1200 120">
+<path d="M0,40 C180,75 360,15 540,40 C720,75 900,15 1080,40 C1260,75 1440,15 1620,40 L1620,120 L0,120 Z" fill="#0369a1" opacity="0.95"></path>
+<path d="M30,42 C210,77 390,17 570,42 C750,77 930,17 1110,42" fill="none" opacity="0.7" stroke="#bae6fd" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+</div>
+<!-- Deep Water Shading Overlay -->
+<div class="absolute inset-x-0 bottom-0 top-12 bg-gradient-to-t from-[#082f49]/80 via-[#0369a1]/25 to-transparent"></div>
+</div>
+</div>
+<!-- ========================================================================= -->
+<!-- END IMMERSIVE LANDSCAPE BACKGROUND                                        -->
+<!-- ========================================================================= -->
+<!-- ========================================================================= -->
+<!-- FOREGROUND UI LAYER: AIRY, ELEGANT, UNCLUTTERED, NON-BLOCKING              -->
+<!-- ========================================================================= -->
+<div class="relative z-10 w-full h-full flex flex-col justify-between items-center px-6 py-6 md:py-8 pointer-events-auto">
+<!-- Top Bar: Minimal Status Badges -->
+<header class="w-full max-w-6xl flex justify-between items-center">
+<!-- Brand & Station badge -->
+<div class="flex items-center gap-2.5 glass-pill px-4 py-2 rounded-full shadow-sm transition hover:shadow-md">
+<span class="relative flex h-2.5 w-2.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+</span>
+<span class="text-xs md:text-sm font-bold tracking-tight text-slate-800">tiniML_IoTmini</span>
+<span class="text-xs text-sky-400 font-bold">•</span>
+<span class="text-xs font-semibold text-slate-600">Hệ thống giám sát và cảnh báo độ nghiêng nhà ở dựa trên nền tảng IoT. </span>
+</div>
+<!-- Realtime Field Data Pill -->
+<div class="hidden sm:flex items-center gap-2 glass-pill px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-700">
+<svg class="w-3.5 h-3.5 text-sky-600 animate-spin" fill="none" viewbox="0 0 24 24">
+<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+<path class="opacity-75" d="M4 12a8 8 0 018-8v8H4z" fill="currentColor"></path>
+</svg>
+<span>Đang nạp dữ liệu thực địa...</span>
+</div>
+</header>
+<!-- Central-Upper Sky Connection Area: Airy, Crisp Typography, No Bulky Card -->
+<!-- Positioned naturally in the upper sky without obstructing the landscape or house -->
+<main class="flex flex-col items-center justify-center text-center mt-4 md:mt-8 max-w-2xl mx-auto w-full px-4">
+<!-- Big Sharp Welcome Headline in Clear Sky -->
+<h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight drop-shadow-[0_2px_12px_rgba(255,255,255,0.9)]">
+      Chào mừng bạn đến với hệ thống
+    </h1>
+<!-- Connecting Subtitle with Animated Bouncing Dots & Subtle Frosted Backing -->
+<div class="inline-flex items-center justify-center gap-2.5 mt-3.5 px-5 py-1.5 rounded-full glass-pill text-sm md:text-base font-semibold text-slate-700">
+<span>Đang kết nối trạm đo độ nghiêng</span>
+<span class="inline-flex items-center gap-1 ml-0.5 pt-0.5">
+<span class="w-2 h-2 bg-sky-500 rounded-full hop-1"></span>
+<span class="w-2 h-2 bg-teal-500 rounded-full hop-2"></span>
+<span class="w-2 h-2 bg-sky-600 rounded-full hop-3"></span>
+</span>
+</div>
+<!-- Slender Glowing Progress Bar -->
+<div class="w-full max-w-sm mt-5">
+<div class="relative h-2 w-full bg-white/70 backdrop-blur-sm rounded-full overflow-hidden p-0.5 shadow-[0_2px_10px_rgba(2,132,199,0.15)] border border-white/80">
+<div class="progress-flow h-full bg-gradient-to-r from-sky-400 via-sky-500 to-teal-400 rounded-full shadow-[0_0_12px_rgba(56,189,248,0.9)]"></div>
+</div>
+</div>
+<!-- Realtime Telemetry Chips -->
+<div class="mt-3.5 flex items-center gap-3 text-xs font-semibold text-slate-600 drop-shadow-[0_1px_4px_rgba(255,255,255,0.8)]">
+<!-- <span class="flex items-center gap-1.5 bg-white/60 px-3 py-1 rounded-full border border-white/70 shadow-sm"> -->
+<!-- <span class="w-2 h-2 rounded-full bg-sky-500"></span> Trục X / Y: Chuẩn xác
+      </span>
+<span class="flex items-center gap-1.5 bg-white/60 px-3 py-1 rounded-full border border-white/70 shadow-sm">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Tín hiệu LoRa: 98%
+      </span>
+</div> -->
+</main>
+<!-- Bottom Actions: Prominent Pill Button over River Surface -->
+<footer class="w-full flex flex-col items-center text-center gap-2 pb-3">
+<!-- Direct Dashboard Button -->
+<a class="group inline-flex items-center gap-3 text-sm md:text-base font-bold text-sky-900 bg-white/90 hover:bg-white px-8 py-3.5 rounded-full border border-white shadow-[0_10px_25px_rgba(3,105,161,0.25)] hover:shadow-[0_15px_30px_rgba(3,105,161,0.35)] transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 backdrop-blur-md" href="{% url 'thong_ke' %}">
+      <span>Vào thẳng Dashboard</span>
+<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-sky-100 text-sky-600 group-hover:bg-sky-500 group-hover:text-white transition-colors duration-200">
+<svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M13 7l5 5m0 0l-5 5m5-5H6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+</svg>
+</span>
+</a>
+<!-- Helper Text -->
+<p class="text-xs text-white/95 drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)] font-medium tracking-wide">
+      Tự động chuyển tiếp sau khi tải xong thông số cảm biến
+    </p>
+</footer>
+</div>
+<script>
+  // Tự động chuyển tiếp sau 3.2 giây vào Dashboard
+  let isNavigating = false;
+  function navigateToDashboard() {
+    if (isNavigating) return;
+    isNavigating = true;
+    window.location.href = "{% url 'thong_ke' %}";
+  }
+  setTimeout(navigateToDashboard, 3200);
+</script>
+</body></html>

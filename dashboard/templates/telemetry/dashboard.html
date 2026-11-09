@@ -1,0 +1,289 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RiverSense · Giám sát độ nghiêng TinyML</title>
+
+    <!-- Google Fonts: Be Vietnam Pro + JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <link rel="stylesheet" href="{% static 'telemetry/css/style.css' %}">
+</head>
+<body>
+
+    <!-- ═══ BĂNG BÁO ĐỘNG ĐỎ KHI CÓ NGUY CƠ ═══════════════════════════════════ -->
+    <div class="danger-banner" id="alertBanner" style="display: none;">
+        <span>CẢNH BÁO NGUY CƠ SẬP ĐỔ CẤP BÁCH — YÊU CẦU KIỂM TRA HIỆN TRƯỜNG NGAY</span>
+    </div>
+
+    <!-- ═══ HEADER TINH GỌN (44px) ═══════════════════════════════════════════ -->
+    <header class="app-topbar">
+        <div class="brand-group">
+            <span class="brand-code">RS</span>
+            <span class="brand-title">RiverSense</span>
+            <span class="brand-desc">Quan trắc độ nghiêng kết cấu nhà ở bằng TinyML (ESP32-C3)</span>
+        </div>
+
+        <div class="topbar-right">
+            <div class="status-item" id="brokerStatusDot" data-state="online">
+                <span class="dot-led"></span>
+                <span class="status-txt" id="brokerStatusText">Trực tuyến</span>
+            </div>
+            <span class="topbar-sep">|</span>
+            <span class="node-badge" id="nodeIdText">esp32c3_node01</span>
+            <span class="topbar-sep">|</span>
+            <button class="btn-topbar-sound" id="soundToggleBtn" type="button">
+                <span id="soundText">Còi: Bật</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ═══ NỘI DUNG CHÍNH (KHÔNG CUỘN TRANG - VIEWPORT 16:9) ═════════════════ -->
+    <main class="dashboard-screen">
+
+        <!-- ── 1. HÀNG 3 CHỈ SỐ CỐT LÕI (GÓC NGHIÊNG, VẬN TỐC GÓC, TINYML) ── -->
+        <section class="top-metrics-row">
+
+            <!-- Chỉ số 1: Trạng thái TinyML -->
+            <div class="metric-box box-ai" id="cardRisk">
+                <div class="box-top">
+                    <span class="box-label">Đánh giá TinyML</span>
+                    <span class="box-tag" id="lastSeenText">Trực tiếp</span>
+                </div>
+                <div class="box-main ai-main">
+                    <div class="ai-badge badge-normal" id="riskBadge">
+                        <span class="badge-dot"></span>
+                        <span id="riskTitle">Bình thường</span>
+                    </div>
+                    <div class="ai-conf">
+                        <span class="conf-num" id="riskConf">98.0%</span>
+                        <span class="conf-sub">Độ tin cậy</span>
+                    </div>
+                </div>
+                <div class="box-bottom">
+                    <span class="state-hint" id="riskDesc">Góc nghiêng và trạng thái kết cấu ở ngưỡng an toàn</span>
+                </div>
+            </div>
+
+            <!-- Chỉ số 2: Góc nghiêng kết cấu -->
+            <div class="metric-box box-tilt">
+                <div class="box-top">
+                    <span class="box-label">Góc nghiêng kết cấu</span>
+                    <div class="tilt-btns">
+                        <button class="btn-calib-now" id="btnCalibQuick" type="button" title="Đặt lại góc mốc 0° theo vị trí hiện tại">Cân bằng 0°</button>
+                        <button class="btn-reset-now" id="btnResetQuick" type="button" style="display: none;">Hủy bù</button>
+                    </div>
+                </div>
+                <div class="box-main">
+                    <div class="value-huge text-tilt">
+                        <span id="tiltAngleVal">0.00</span><span class="val-unit">°</span>
+                    </div>
+                    <span class="calib-tag-small" id="calibIndicatorText">Mốc: Gốc</span>
+                </div>
+                <div class="box-bottom">
+                    <div class="mini-bar-bg"><div class="mini-bar-fill fill-tilt" id="tiltAngleBar" style="width: 0%;"></div></div>
+                    <span class="state-hint" id="tiltAngleState">Kết cấu ổn định (&lt;2.5°)</span>
+                </div>
+            </div>
+
+            <!-- Chỉ số 3: Tốc độ đổi góc nghiêng -->
+            <div class="metric-box box-rate">
+                <div class="box-top">
+                    <span class="box-label">Tốc độ đổi góc</span>
+                    <span class="sensor-hint">Vi sai thời gian</span>
+                </div>
+                <div class="box-main">
+                    <div class="value-huge text-rate">
+                        <span id="tiltRateVal">0.000</span><span class="val-unit">°/p</span>
+                    </div>
+                </div>
+                <div class="box-bottom">
+                    <div class="mini-bar-bg"><div class="mini-bar-fill fill-rate" id="tiltRateBar" style="width: 0%;"></div></div>
+                    <span class="state-hint" id="tiltRateState">Đứng yên (&lt;0.1°/p)</span>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ── 2. KHU VỰC CHÍNH: 2 CỘT CÂN XỨNG (BIỂU ĐỒ & DỮ LIỆU/ĐIỀU KHIỂN) ── -->
+        <section class="main-viewport-grid">
+
+            <!-- CỘT TRÁI: 2 BIỂU ĐỒ TRỰC QUAN -->
+            <div class="charts-column">
+                <!-- Biểu đồ 1: Biến thiên góc nghiêng theo thời gian -->
+                <div class="card-chart">
+                    <div class="chart-header-compact">
+                        <span class="chart-heading">Biến thiên góc nghiêng kết cấu theo thời gian</span>
+                        <div class="chart-compact-legend">
+                            <span class="dot-legend dot-orange"></span><span>Góc nghiêng (°)</span>
+                        </div>
+                    </div>
+                    <div class="canvas-holder">
+                        <canvas id="sensorChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Biểu đồ 2: Xu hướng xác suất rủi ro TinyML -->
+                <div class="card-chart">
+                    <div class="chart-header-compact">
+                        <span class="chart-heading">Xu hướng xác suất TinyML Softmax</span>
+                        <div class="chart-compact-legend">
+                            <span class="dot-legend dot-green"></span><span>An toàn</span>
+                            <span class="dot-legend dot-amber"></span><span>Chú ý</span>
+                            <span class="dot-legend dot-red"></span><span>Nguy hiểm</span>
+                        </div>
+                    </div>
+                    <div class="canvas-holder">
+                        <canvas id="probChart"></canvas>
+                    </div>
+
+                    <!-- Thanh phân bố Softmax thu nhỏ tích hợp trực tiếp -->
+                    <div class="compact-softmax-bar">
+                        <div class="softmax-stack">
+                            <div class="st-seg st-normal" id="barSegNormal" style="width: 100%;"></div>
+                            <div class="st-seg st-attention" id="barSegAttention" style="width: 0%;"></div>
+                            <div class="st-seg st-danger" id="barSegDanger" style="width: 0%;"></div>
+                        </div>
+                        <div class="softmax-labels-row">
+                            <span>An toàn: <strong id="probNormalVal">100.0%</strong></span>
+                            <span>Chú ý: <strong id="probAttentionVal">0.0%</strong></span>
+                            <span>Nguy hiểm: <strong id="probDangerVal">0.0%</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CỘT PHẢI: BẢNG DỮ LIỆU TELEMETRY & ĐIỀU KHIỂN -->
+            <div class="data-column">
+
+                <!-- Khối bảng dữ liệu -->
+                <div class="card-table-block">
+                    <div class="table-top-bar">
+                        <div class="table-title-area">
+                            <span class="table-heading">Nhật ký telemetry</span>
+                            <span class="count-tag">Tổng: <strong id="totalPacketsCount">0</strong></span>
+                        </div>
+                        <button class="btn-clear-sm" id="btnClearHistory" type="button">Xóa nhật ký</button>
+                    </div>
+
+                    <div class="table-viewport">
+                        <table class="simple-table">
+                            <thead>
+                                <tr>
+                                    <th>Thời gian</th>
+                                    <th>Góc nghiêng</th>
+                                    <th>Vận tốc góc</th>
+                                    <th>Cấp rủi ro</th>
+                                    <th>Độ tin cậy</th>
+                                </tr>
+                            </thead>
+                            <tbody id="telemetryTableBody">
+                                <tr>
+                                    <td colspan="5" class="cell-empty">Đang chờ bản tin từ thiết bị...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Khối điều khiển & kiểm thử đầy đặn -->
+                <div class="card-control-compact">
+
+                    <!-- Hàng 1: Nút giả lập kịch bản -->
+                    <div class="ctrl-sub-section">
+                        <div class="ctrl-sub-header">
+                            <span class="ctrl-sub-label">Thử nghiệm kịch bản TinyML</span>
+                            <span class="ctrl-sub-note">Phản hồi tức thì</span>
+                        </div>
+                        <div class="sim-btn-row">
+                            <button class="btn-sim-quick sim-q0" onclick="simulatePacket(0)" type="button">
+                                <strong>Cấp 0 (An toàn)</strong>
+                                <span>Góc 1.2° · 0.02°/p</span>
+                            </button>
+                            <button class="btn-sim-quick sim-q1" onclick="simulatePacket(1)" type="button">
+                                <strong>Cấp 1 (Chú ý)</strong>
+                                <span>Góc 4.5° · 0.25°/p</span>
+                            </button>
+                            <button class="btn-sim-quick sim-q2" onclick="simulatePacket(2)" type="button">
+                                <strong>Cấp 2 (Nguy hiểm)</strong>
+                                <span>Góc 8.5° · 0.85°/p</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Hàng 2: Hiệu chuẩn mốc 0° thực địa -->
+                    <div class="ctrl-sub-section">
+                        <div class="ctrl-sub-header">
+                            <span class="ctrl-sub-label">Hiệu chuẩn mốc 0° thực địa</span>
+                            <span class="calib-hint-inline" id="calibCurrentAngleHint">Góc hiện tại: 0.00°</span>
+                        </div>
+                        <div class="calib-full-row">
+                            <button class="btn-calib-action-main" id="btnCalibrateZero" type="button">
+                                <span>Cân bằng mốc 0° theo góc hiện tại</span>
+                            </button>
+                            <button class="btn-reset-action-main" id="btnResetCalib" type="button" style="display: none;">
+                                Đặt lại gốc
+                            </button>
+                            <div class="calib-status-badge" id="calibStatusInfo" style="display: none;">
+                                <span class="dot-green-tiny"></span>
+                                <span id="calibStatusText">Đang bù mốc: 0.00°</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hàng 3: Thống kê hoạt động quan trắc -->
+                    <div class="ctrl-sub-section">
+                        <div class="ctrl-sub-header">
+                            <span class="ctrl-sub-label">Thống kê hoạt động quan trắc</span>
+                        </div>
+                        <div class="stats-mini-row">
+                            <div class="stat-bubble">
+                                <span class="sb-val text-green" id="statNormalCount">0</span>
+                                <span class="sb-lbl">An toàn</span>
+                            </div>
+                            <div class="stat-bubble">
+                                <span class="sb-val text-amber" id="statAttentionCount">0</span>
+                                <span class="sb-lbl">Chú ý</span>
+                            </div>
+                            <div class="stat-bubble">
+                                <span class="sb-val text-red" id="statDangerCount">0</span>
+                                <span class="sb-lbl">Nguy cơ</span>
+                            </div>
+                            <div class="stat-bubble stat-bubble-wide">
+                                <span class="sb-val" id="statMaxTilt">0.0°</span>
+                                <span class="sb-lbl">Góc lớn nhất</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Các thẻ phụ trợ ẩn để JavaScript chạy tương thích -->
+    <div style="display: none;">
+        <span id="moistureVal"></span>
+        <div id="moistureBar"></div>
+        <span id="moistureState"></span>
+        <span id="statAvgMoisture"></span>
+        <div id="probNormalLine"></div>
+        <div id="probAttentionLine"></div>
+        <div id="probDangerLine"></div>
+    </div>
+
+    <!-- Token xác thực và JavaScript -->
+    <script>window.IOT_API_TOKEN = "{{ api_token|default:'demo-satlo-2026' }}";</script>
+    <script src="{% static 'telemetry/dashboard.js' %}"></script>
+</body>
+</html>
